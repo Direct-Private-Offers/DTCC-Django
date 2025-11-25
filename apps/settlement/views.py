@@ -91,8 +91,8 @@ class SettlementView(APIView):
             500: ERROR_500,
         }
     )
-    @ratelimit(key='user', rate='60/m', method='POST', block=True)
     @idempotent
+    @ratelimit(key='user', rate='60/m', method='POST', block=True)
     def post(self, request: Request) -> Response:
         ser = SettlementCreateSerializer(data=request.data)
         if not ser.is_valid():
