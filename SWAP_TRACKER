@@ -1,0 +1,45 @@
+## 🗂️ DEX/Swap Microservice Integration Tracker
+
+| Item | Required/Provided | Status |
+|------|------------------|--------|
+| API endpoints (auth, issuance, derivatives, settlement, webhooks) | ✅ Provided | Complete |
+| JWT auth & RBAC (issuer, reporter, ops) | ✅ Provided | Complete |
+| OpenAPI/Swagger docs (`/api/schema/`, `/api/docs/`, `/api/redoc/`) | ✅ Provided | Complete |
+| Idempotency support (`Idempotency-Key` header) | ✅ Provided | Complete |
+| Example payloads & compliance/settlement flows | ✅ Provided | Complete |
+| Environment variables & deployment guidance | ✅ Provided | Complete |
+| Async/background worker support (Celery, Redis, web3) | ✅ Provided | Complete |
+| Webhook HMAC scheme & envelope format | ✅ Provided | Complete |
+| **OpenAPI Spec export** (`/api/schema/` JSON/YAML with swap schemas) | ❗ Required | Pending |
+| **Contracts** (ERC1400, DTCCCompliantSTO, swap/router ABIs + addresses per chain) | ❗ Required | Pending |
+| **Auth & Credentials** (service JWT/mTLS, test users, sample tokens) | ❗ Required | Pending |
+| **Compliance Hooks** (`/api/compliance/validate-transfer/` schema + error codes) | ❗ Required | Pending |
+| **Settlement & Reporting** (instruction schema, webhook specs for Chainlink/Clearstream/Euroclear) | ❗ Required | Pending |
+| **Environment Variables** (canonical `.env.example` with blockchain + integration vars) | ❗ Required | Pending |
+| **Event & Logging** (structured JSON logs, event definitions, bus/webhook guidance) | ❗ Required | Pending |
+| **SDKs / Helper Snippets** (TypeScript/Python helpers for compliance, settlement, HMAC) | ❗ Required | Pending |
+
+---
+
+### 📦 Concrete Artifacts to Deliver
+- OpenAPI JSON export from `/api/schema/`
+- Contract addresses and ABIs per chain
+- Fully populated `.env.example`
+- Test credentials document (users, JWTs, service tokens)
+- Compliance API spec and JSON schema
+- Settlement and webhook sample payloads
+- Event definitions and sample logs
+- (Optional) TypeScript helper snippets for frontend integration
+
+---
+
+### 🔜 Next Steps
+- Replace placeholder contract addresses/ABIs with real ones and commit.
+- Export live `/api/schema/` for canonical OpenAPI.
+- Provision service account tokens and update env vars for each stage.
+- Add SDK/helper snippets to DEX frontend or publish as a package.
+- Use this table in GitHub issues/PRs to track progress.
+
+---
+
+👉 Arthur, this table format makes it easy to **track integration readiness at a glance**. Would you like me to also generate a **GitHub issue template** (Markdown with checkboxes) so your team can drop this straight into the repo and update statuses as they deliver?

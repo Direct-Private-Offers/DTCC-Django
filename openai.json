@@ -1,0 +1,231 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DTCC-Django Integration API (DEX Integration Candidate)",
+    "version": "1.0.0",
+    "description": "OpenAPI spec for DEX integration: swap quoting/execution, compliance preflight, settlements, derivatives reporting and webhooks. Replace with an exported /api/schema/ from the running service for final canonical file."
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/api",
+      "description": "Production API base (example)"
+    },
+    {
+      "url": "https://staging-api.example.com/api",
+      "description": "Staging API base (example)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "User or service JWT for authenticated API calls"
+      },
+      "ServiceToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Service-Token",
+        "description": "Short-lived service token for microservice-to-backend calls. Alternatively use BearerAuth."
+      }
+    },
+    "schemas": {
+      "Envelope": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {},
+          "error": {},
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SwapQuoteRequest": {
+        "type": "object",
+        "required": ["sell_token", "buy_token", "sell_amount", "sender_address", "recipient_address"],
+        "properties": {
+          "sell_token": { "type": "string", "description": "ERC20/ERC1400 contract address" },
+          "buy_token": { "type": "string" },
+          "sell_amount": { "type": "string", "description": "Amount in token base units (string to avoid float issues)" },
+          "sender_address": { "type": "string" },
+          "recipient_address": { "type": "string" },
+          "slippage_tolerance": { "type": "string", "example": "0.005", "description": "decimal fraction" },
+          "deadline": { "type": "string", "format": "date-time" },
+          "idempotency_key": { "type": "string" }
+        }
+      },
+      "SwapQuoteResponse": {
+        "type": "object",
+        "properties": {
+          "quote_id": { "type": "string" },
+          "estimated_buy_amount": { "type": "string" },
+          "price_impact": { "type": "string" },
+          "route": { "type": "array", "items": { "type": "string" } },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "allowed": { "type": "boolean", "description": "true if compliance preflight succeeded" },
+          "compliance_reasons": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "SwapExecuteRequest": {
+        "type": "object",
+        "required": ["quote_id", "sender_address", "recipient_address", "signature"],
+        "properties": {
+          "quote_id": { "type": "string" },
+          "sender_address": { "type": "string" },
+          "recipient_address": { "type": "string" },
+          "signature": { "type": "string", "description": "optional off-chain signature authorizing execution" },
+          "idempotency_key": { "type": "string" }
+        }
+      },
+      "ComplianceValidateRequest": {
+        "type": "object",
+        "required": ["sender_address", "receiver_address", "token_contract", "amount", "transfer_type"],
+        "properties": {
+          "sender_address": { "type": "string" },
+          "receiver_address": { "type": "string" },
+          "token_contract": { "type": "string" },
+          "token_id": { "type": "string", "nullable": true },
+          "amount": { "type": "string" },
+          "transfer_type": { "type": "string", "enum": ["sale", "transfer", "settlement", "forced_transfer"] },
+          "effective_date": { "type": "string", "format": "date-time" },
+          "metadata": { "type": "object" },
+          "idempotency_key": { "type": "string" }
+        }
+      },
+      "ComplianceValidateResponse": {
+        "type": "object",
+        "properties": {
+          "allowed": { "type": "boolean" },
+          "code": { "type": "string", "description": "canonical code when not allowed e.g., KYC_FAIL" },
+          "reason": { "type": "string" },
+          "details": { "type": "object" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SettlementRequest": {
+        "type": "object",
+        "required": ["settlement_id", "trade_id", "from_account", "to_account", "amount", "currency", "value_date"],
+        "properties": {
+          "settlement_id": { "type": "string" },
+          "trade_id": { "type": "string" },
+          "from_account": { "type": "string" },
+          "to_account": { "type": "string" },
+          "amount": { "type": "string" },
+          "currency": { "type": "string" },
+          "value_date": { "type": "string", "format": "date" },
+          "instructions": { "type": "object" }
+        }
+      },
+      "DerivativeReport": {
+        "type": "object",
+        "required": ["report_id", "uti", "notional", "underlying_isin", "reporting_party"],
+        "properties": {
+          "report_id": { "type": "string" },
+          "uti": { "type": "string" },
+          "notional": { "type": "string" },
+          "underlying_isin": { "type": "string" },
+          "reporting_party": { "type": "string" },
+          "trade_date": { "type": "string", "format": "date" }
+        }
+      },
+      "WebhookEnvelope": {
+        "type": "object",
+        "required": ["event_type", "payload"],
+        "properties": {
+          "event_type": { "type": "string" },
+          "payload": { "type": "object" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "details": { "type": "object" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/swap/quote/": {
+      "post": {
+        "summary": "Request a swap quote",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SwapQuoteRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SwapQuoteResponse" }
+              }
+            }
+          },
+          "4XX": { "description": "Client error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/swap/execute/": {
+      "post": {
+        "summary": "Execute a previously quoted swap",
+        "security": [{ "BearerAuth": [] }, { "ServiceToken": [] }],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SwapExecuteRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Execution accepted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Envelope" } } } },
+          "409": { "description": "Idempotency or conflict", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/compliance/validate-transfer/": {
+      "post": {
+        "summary": "Pre-flight compliance check for a token transfer",
+        "security": [{ "BearerAuth": [] }, { "ServiceToken": [] }],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ComplianceValidateRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Compliance result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ComplianceValidateResponse" } } } },
+          "400": { "description": "Bad request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/settlement/": {
+      "post": {
+        "summary": "Create a settlement instruction",
+        "security": [{ "BearerAuth": [] }, { "ServiceToken": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettlementRequest" } } } },
+        "responses": { "201": { "description": "Settlement created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Envelope" } } } } }
+      }
+    },
+    "/derivatives/": {
+      "post": {
+        "summary": "Report a derivative to DTCC or internal reporting DB",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DerivativeReport" } } } },
+        "responses": { "201": { "description": "Reported", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Envelope" } } } } }
+      }
+    },
+    "/webhooks/chainlink/": {
+      "post": {
+        "summary": "Chainlink KYC oracle callback (HMAC protected)",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WebhookEnvelope" } } } },
+        "responses": { "200": { "description": "Accepted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Envelope" } } } } }
+      }
+    }
+  }
+}
