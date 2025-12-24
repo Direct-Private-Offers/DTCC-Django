@@ -216,6 +216,24 @@ flowchart LR
 | GET | `/api/ready` | Readiness check (database, cache) | None |
 | GET | `/api/metrics` | System metrics | None |
 
+### File Storage
+| Method | Endpoint | Description | RBAC |
+|--------|----------|-------------|------|
+| POST | `/api/storage/upload` | Upload file (KYC documents, contracts) | Authenticated |
+| GET | `/api/storage/files` | List stored files | Authenticated |
+| GET | `/api/storage/files/<id>` | Download file | Authenticated |
+| DELETE | `/api/storage/files/<id>/delete` | Delete file | Authenticated |
+
+### Outbound Webhooks
+| Method | Endpoint | Description | RBAC |
+|--------|----------|-------------|------|
+| GET | `/api/webhooks/outbound` | List webhook subscriptions | Authenticated |
+| POST | `/api/webhooks/outbound` | Create webhook subscription | Authenticated |
+| PATCH | `/api/webhooks/outbound/<id>` | Update webhook subscription | Authenticated |
+| DELETE | `/api/webhooks/outbound/<id>` | Delete webhook subscription | Authenticated |
+| GET | `/api/webhooks/outbound/<id>/deliveries` | List delivery history | Authenticated |
+| POST | `/api/webhooks/outbound/deliveries/<id>/retry` | Retry failed delivery | Authenticated |
+
 ## Security & Access Control
 
 ### Authentication
