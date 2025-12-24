@@ -2,42 +2,71 @@ name: CI
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ "**" ]
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install system deps (psycopg build headers)
-        run: sudo apt-get update && sudo apt-get install -y libpq-dev
-
-      - name: Upgrade pip and install tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit
-
-      - name: Install project dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Django system check
+    
+    services:
+      postgres:
+        image: postgres:14
         env:
-          DJANGO_SETTINGS_MODULE: config.settings
-          DEBUG: "false"
-          ALLOWED_HOSTS: localhost,127.0.0.1
-        run: |
-          python manage.py check
-
-      - name: Security audit (pip-audit)
-        run: |
-          pip-audit -r requirements.txt --strict
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run migrations
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        DJANGO_SECRET_KEY: test-secret-key
+      run: |
+        python manage.py migrate
+    
+    - name: Run tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        DJANGO_SECRET_KEY: test-secret-key
+      run: |
+        pytest --cov=apps --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella

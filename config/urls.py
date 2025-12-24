@@ -18,4 +18,9 @@ urlpatterns = [
     path('api/clearstream/', include('apps.clearstream.urls')),
     path('api/webhooks/', include('apps.webhooks.urls')),
     path('api/dex/', include('apps.dex.urls')),
+    path('api/compliance/', include('apps.compliance.urls')),
+    path('api/notifications/', include('apps.notifications.urls')),
+    path('api/reports/', include('apps.reports.urls')),
+    path('api/storage/', include('apps.storage.urls')),
+    path('api/', include('apps.api.urls')),
 ]
