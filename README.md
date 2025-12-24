@@ -184,6 +184,38 @@ flowchart LR
 |--------|----------|-------------|------|
 | POST | `/api/issuance/events/ingest` | Ingest blockchain event | `ops`, `issuer` |
 
+### Compliance (KYC/AML)
+| Method | Endpoint | Description | RBAC |
+|--------|----------|-------------|------|
+| GET | `/api/compliance/profile` | Get investor profile | Authenticated |
+| PATCH | `/api/compliance/profile` | Update investor profile | Authenticated |
+| GET | `/api/compliance/documents` | List KYC documents | Authenticated |
+| POST | `/api/compliance/documents` | Upload KYC document | Authenticated |
+| GET | `/api/compliance/aml-checks` | Get AML check results | `ops`, `issuer` |
+| GET | `/api/compliance/audit-logs` | Query audit logs | `ops` |
+
+### Notifications
+| Method | Endpoint | Description | RBAC |
+|--------|----------|-------------|------|
+| GET | `/api/notifications` | List user notifications | Authenticated |
+| GET | `/api/notifications/preferences` | Get notification preferences | Authenticated |
+| PATCH | `/api/notifications/preferences` | Update notification preferences | Authenticated |
+
+### Reports & Analytics
+| Method | Endpoint | Description | RBAC |
+|--------|----------|-------------|------|
+| GET | `/api/reports/trading` | Trading activity report | Authenticated |
+| GET | `/api/reports/settlement` | Settlement activity report | `ops`, `issuer` |
+| GET | `/api/reports/issuance` | Token issuance report | `ops`, `issuer` |
+| GET | `/api/reports/reconciliation` | Blockchain reconciliation report | `ops` |
+
+### System Health
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/health` | Basic health check | None |
+| GET | `/api/ready` | Readiness check (database, cache) | None |
+| GET | `/api/metrics` | System metrics | None |
+
 ## Security & Access Control
 
 ### Authentication
@@ -349,6 +381,9 @@ EUROCLEAR_API_KEY=<your-key>
 CLEARSTREAM_PMI_BASE=https://api.clearstream.com
 CLEARSTREAM_PMI_KEY=<your-key>
 WEBHOOK_SECRET=<hmac-secret>
+SENDGRID_API_KEY=<your-sendgrid-api-key>
+SENDGRID_FROM_EMAIL=noreply@yourdomain.com
+SENDGRID_FROM_NAME=DTCC STO Backend
 ```
 
 #### 4. Database Migrations

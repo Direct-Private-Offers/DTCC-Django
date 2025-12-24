@@ -27,6 +27,10 @@ INSTALLED_APPS = [
     'apps.clearstream',
     'apps.webhooks',
     'apps.dex',
+    'apps.api',
+    'apps.compliance',
+    'apps.notifications',
+    'apps.reports',
 ]
 
 MIDDLEWARE = [
@@ -173,3 +177,122 @@ ISSUANCE_CONTRACT_ADDRESS = os.getenv('ISSUANCE_CONTRACT_ADDRESS', '')
 ISSUANCE_CONTRACT_ABI = os.getenv('ISSUANCE_CONTRACT_ABI', '')
 BLOCKCHAIN_NETWORK = os.getenv('BLOCKCHAIN_NETWORK', 'BSC')  # BSC, Ethereum, Polygon, etc.
 START_BLOCK_NUMBER = int(os.getenv('START_BLOCK_NUMBER', '0'))
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose' if DEBUG else 'json',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'dtcc.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'json',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'apps.core': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'apps.dex': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'apps.issuance': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'dtcc',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
+
+# If Redis is not available, fallback to local memory cache
+if not os.getenv('REDIS_URL'):
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'dtcc-cache',
+    }
+
+# Email Configuration - SendGrid
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+SENDGRID_FROM_EMAIL = os.getenv('SENDGRID_FROM_EMAIL', os.getenv('DEFAULT_FROM_EMAIL', 'noreply@dtcc-sto.com'))
+SENDGRID_FROM_NAME = os.getenv('SENDGRID_FROM_NAME', 'DTCC STO Backend')
+
+# Django Email Backend
+# Use SendGrid backend if API key is provided, otherwise fallback to console for development
+if SENDGRID_API_KEY:
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    SENDGRID_SANDBOX_MODE_IN_DEBUG = DEBUG  # Use sandbox mode in debug
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Fallback to console
+
+DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
