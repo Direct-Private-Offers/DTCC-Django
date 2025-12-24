@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'apps.compliance',
     'apps.notifications',
     'apps.reports',
+    'apps.storage',
 ]
 
 MIDDLEWARE = [
@@ -281,6 +282,20 @@ if not os.getenv('REDIS_URL'):
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'dtcc-cache',
     }
+
+# File Storage Configuration
+FILE_STORAGE_ROOT = os.path.join(BASE_DIR, 'storage', 'files')
+os.makedirs(FILE_STORAGE_ROOT, exist_ok=True)
+
+# IPFS Configuration (optional)
+IPFS_ENABLED = os.getenv('IPFS_ENABLED', 'false').lower() == 'true'
+IPFS_GATEWAY_URL = os.getenv('IPFS_GATEWAY_URL', 'https://ipfs.io/ipfs/')
+IPFS_API_URL = os.getenv('IPFS_API_URL', 'http://localhost:5001')
+
+# API Versioning
+REST_FRAMEWORK['DEFAULT_VERSIONING_CLASS'] = 'apps.core.versioning.CustomURLPathVersioning'
+REST_FRAMEWORK['ALLOWED_VERSIONS'] = ['v1', 'v2']
+REST_FRAMEWORK['DEFAULT_VERSION'] = 'v1'
 
 # Email Configuration - SendGrid
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
