@@ -5,13 +5,13 @@ jobs:
     docker:
       - image: cimg/python:3.11
         environment:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dtcc_db
           REDIS_URL: redis://localhost:6379/0
       - image: cimg/postgres:14
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: dtcc_db
       - image: cimg/redis:7
     steps:
       - checkout
