@@ -6,7 +6,10 @@ contract interaction, and event parsing.
 import os
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web3 import Web3
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -159,3 +162,71 @@ def wait_for_confirmation(w3: Web3, tx_hash: str, timeout: int = 300, poll_inter
     
     return False
 
+
+def get_sto_contract(w3: Optional[Web3] = None, contract_address: Optional[str] = None) -> Any:
+    """
+    Get STO contract instance using production address from settings.
+    
+    Args:
+        w3: Optional Web3 instance. If not provided, creates one.
+        contract_address: Optional contract address. If not provided, uses STO_CONTRACT_ADDRESS from settings.
+    
+    Returns:
+        STO contract instance
+    """
+    from django.conf import settings
+    
+    if not w3:
+        w3 = get_web3_provider()
+    
+    address = contract_address or getattr(settings, 'STO_CONTRACT_ADDRESS', None) or getattr(settings, 'ISSUANCE_CONTRACT_ADDRESS', None)
+    if not address:
+        raise ValueError("STO_CONTRACT_ADDRESS or ISSUANCE_CONTRACT_ADDRESS must be set")
+    
+    return get_contract_instance(w3, address)
+
+
+def get_derivatives_reporter_contract(w3: Optional[Web3] = None, contract_address: Optional[str] = None) -> Any:
+    """
+    Get DerivativesReporter contract instance.
+    
+    Args:
+        w3: Optional Web3 instance. If not provided, creates one.
+        contract_address: Optional contract address. If not provided, uses DERIVATIVES_REPORTER_CONTRACT_ADDRESS from settings.
+    
+    Returns:
+        DerivativesReporter contract instance
+    """
+    from django.conf import settings
+    
+    if not w3:
+        w3 = get_web3_provider()
+    
+    address = contract_address or getattr(settings, 'DERIVATIVES_REPORTER_CONTRACT_ADDRESS', None)
+    if not address:
+        raise ValueError("DERIVATIVES_REPORTER_CONTRACT_ADDRESS must be set")
+    
+    return get_contract_instance(w3, address)
+
+
+def get_euroclear_bridge_contract(w3: Optional[Web3] = None, contract_address: Optional[str] = None) -> Any:
+    """
+    Get EuroclearBridge contract instance.
+    
+    Args:
+        w3: Optional Web3 instance. If not provided, creates one.
+        contract_address: Optional contract address. If not provided, uses EUROCLEAR_BRIDGE_CONTRACT_ADDRESS from settings.
+    
+    Returns:
+        EuroclearBridge contract instance
+    """
+    from django.conf import settings
+    
+    if not w3:
+        w3 = get_web3_provider()
+    
+    address = contract_address or getattr(settings, 'EUROCLEAR_BRIDGE_CONTRACT_ADDRESS', None)
+    if not address:
+        raise ValueError("EUROCLEAR_BRIDGE_CONTRACT_ADDRESS must be set")
+    
+    return get_contract_instance(w3, address)
