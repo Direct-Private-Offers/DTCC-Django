@@ -12,6 +12,8 @@ class WebhookEvent(models.Model):
         EUROCLEAR = 'euroclear', 'Euroclear'
         CLEARSTREAM = 'clearstream', 'Clearstream'
         CHAINLINK = 'chainlink', 'Chainlink'
+        NEO_BANK = 'neo_bank', 'NEO Bank'
+        FX_MARKET = 'fx_market', 'FX-to-Market'
 
     class Status(models.TextChoices):
         PENDING = 'PENDING', 'Pending'

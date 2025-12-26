@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EuroclearWebhook, ClearstreamWebhook, ChainlinkWebhook
+from .views import EuroclearWebhook, ClearstreamWebhook, ChainlinkWebhook, NeoBankWebhook, FxMarketWebhook
 from .outbound_views import (
     OutboundWebhookView, OutboundWebhookDeliveryView, OutboundWebhookRetryView
 )
@@ -9,6 +9,8 @@ urlpatterns = [
     path('euroclear', EuroclearWebhook.as_view(), name='wh-euroclear'),
     path('clearstream', ClearstreamWebhook.as_view(), name='wh-clearstream'),
     path('chainlink', ChainlinkWebhook.as_view(), name='wh-chainlink'),
+    path('neo-bank', NeoBankWebhook.as_view(), name='wh-neo-bank'),
+    path('fx-market', FxMarketWebhook.as_view(), name='wh-fx-market'),
     # Outbound webhooks
     path('outbound', OutboundWebhookView.as_view(), name='webhook-outbound-list'),
     path('outbound/<uuid:webhook_id>', OutboundWebhookView.as_view(), name='webhook-outbound-detail'),
