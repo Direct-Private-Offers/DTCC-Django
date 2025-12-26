@@ -180,8 +180,84 @@ class IssuanceReportView(APIView):
             'statistics': {
                 'total_issuances': events.count(),
                 'total_amount': str(total_amount),
-                'unique_investors': unique_investors,
-            },
-            'isin': isin,
-        })
+            'unique_investors': unique_investors,
+        },
+        'isin': isin,
+    })
 
+
+class UnifiedReportingView(APIView):
+    """Unified regulatory reporting across platforms."""
+    permission_classes = [IsAuthenticated, IsInGroup.with_names(["ops", "reporter"])]
+    
+    @extend_schema(
+        tags=["Reports"],
+        summary="Generate unified regulatory report",
+        description="Generate MiFID II, SEC, or BaFin compliant report. Requires 'ops' or 'reporter' group.",
+        parameters=[
+            OpenApiParameter(name="report_type", location=OpenApiParameter.QUERY, type=str, required=True, 
+                           description="Report type: mifid_ii, sec, or bafin"),
+            OpenApiParameter(name="start_date", location=OpenApiParameter.QUERY, type=str, required=False),
+            OpenApiParameter(name="end_date", location=OpenApiParameter.QUERY, type=str, required=False),
+            OpenApiParameter(name="isin", location=OpenApiParameter.QUERY, type=str, required=False),
+        ],
+        responses={200: OpenApiResponse(description="Regulatory report")}
+    )
+    def get(self, request: Request):
+        """Generate unified regulatory report."""
+        from apps.reports.services import UnifiedReportingService
+        
+        report_type = request.query_params.get('report_type', '').upper()
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        isin = request.query_params.get('isin')
+        
+        if not end_date:
+            end_date = timezone.now()
+        else:
+            end_date = timezone.datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+        else:
+            start_date = timezone.datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        
+        service = UnifiedReportingService()
+        
+        if report_type == 'MIFID_II':
+            report = service.generate_mifid_ii_report(start_date, end_date, isin)
+        elif report_type == 'SEC':
+            report = service.generate_sec_report(start_date, end_date, isin)
+        elif report_type == 'BAFIN':
+            report = service.generate_bafin_report(start_date, end_date, isin)
+        else:
+            return bad_request(f"Invalid report_type: {report_type}. Must be mifid_ii, sec, or bafin")
+        
+        return ok(report)
+
+
+class ReportingStatusView(APIView):
+    """Cross-platform reporting status synchronization."""
+    permission_classes = [IsAuthenticated, IsInGroup.with_names(["ops", "reporter"])]
+    
+    @extend_schema(
+        tags=["Reports"],
+        summary="Get cross-platform reporting status",
+        description="Get reporting status across DPO, NEO Bank, and FX-to-Market platforms.",
+        parameters=[
+            OpenApiParameter(name="report_id", location=OpenApiParameter.QUERY, type=str, required=True),
+        ],
+        responses={200: OpenApiResponse(description="Reporting status")}
+    )
+    def get(self, request: Request):
+        """Get cross-platform reporting status."""
+        from apps.reports.services import UnifiedReportingService
+        
+        report_id = request.query_params.get('report_id')
+        if not report_id:
+            return bad_request("report_id parameter required")
+        
+        service = UnifiedReportingService()
+        status = service.get_cross_platform_reporting_status(report_id)
+        
+        return ok(status)

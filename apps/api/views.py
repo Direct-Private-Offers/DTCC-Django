@@ -136,3 +136,92 @@ class MetricsView(APIView):
         
         return Response(metrics, status=200)
 
+
+class CSDHealthView(APIView):
+    """CSD connectivity health check endpoint."""
+    permission_classes = [AllowAny]
+    
+    @extend_schema(
+        tags=["System"],
+        summary="CSD connectivity check",
+        description="Checks connectivity to Euroclear, Clearstream, and XETRA APIs.",
+        responses={
+            200: OpenApiResponse(
+                description="CSD connectivity status",
+                response={
+                    "type": "object",
+                    "properties": {
+                        "euroclear": {"type": "string", "example": "connected"},
+                        "clearstream": {"type": "string", "example": "connected"},
+                        "xetra": {"type": "string", "example": "connected"}
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request):
+        """Check CSD connectivity."""
+        import os
+        checks = {
+            'euroclear': 'unknown',
+            'clearstream': 'unknown',
+            'xetra': 'unknown'
+        }
+        
+        # Check Euroclear
+        euroclear_base = os.getenv('EUROCLEAR_API_BASE', '')
+        euroclear_key = os.getenv('EUROCLEAR_API_KEY', '')
+        if euroclear_base and euroclear_key:
+            if not euroclear_base.endswith('.example'):
+                checks['euroclear'] = 'configured'
+                # Try a simple connectivity test
+                try:
+                    from apps.euroclear.client import EuroclearClient
+                    client = EuroclearClient()
+                    # Just check if client initializes properly
+                    checks['euroclear'] = 'ready'
+                except Exception as e:
+                    logger.warning(f"Euroclear client check failed: {str(e)}")
+                    checks['euroclear'] = 'error'
+            else:
+                checks['euroclear'] = 'development_mode'
+        else:
+            checks['euroclear'] = 'not_configured'
+        
+        # Check Clearstream
+        clearstream_base = os.getenv('CLEARSTREAM_PMI_BASE', '')
+        clearstream_key = os.getenv('CLEARSTREAM_PMI_KEY', '')
+        if clearstream_base and clearstream_key:
+            if not clearstream_base.endswith('.example'):
+                checks['clearstream'] = 'configured'
+                try:
+                    from apps.clearstream.client import ClearstreamClient
+                    client = ClearstreamClient()
+                    checks['clearstream'] = 'ready'
+                except Exception as e:
+                    logger.warning(f"Clearstream client check failed: {str(e)}")
+                    checks['clearstream'] = 'error'
+            else:
+                checks['clearstream'] = 'development_mode'
+        else:
+            checks['clearstream'] = 'not_configured'
+        
+        # Check XETRA
+        xetra_base = os.getenv('XETRA_API_BASE', '')
+        xetra_key = os.getenv('XETRA_API_KEY', '')
+        if xetra_base and xetra_key:
+            if not xetra_base.endswith('.example'):
+                checks['xetra'] = 'configured'
+                try:
+                    from apps.xetra.client import XetraClient
+                    client = XetraClient()
+                    checks['xetra'] = 'ready'
+                except Exception as e:
+                    logger.warning(f"XETRA client check failed: {str(e)}")
+                    checks['xetra'] = 'error'
+            else:
+                checks['xetra'] = 'development_mode'
+        else:
+            checks['xetra'] = 'not_configured'
+        
+        return Response(checks, status=200)

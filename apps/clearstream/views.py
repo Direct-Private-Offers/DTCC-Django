@@ -17,6 +17,7 @@ from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 )
 from apps.core.schemas import ERROR_400, ERROR_401, ERROR_403, ERROR_404, ERROR_500
+from .client import ClearstreamClient
 
 
 class ClearstreamAccountView(APIView):
@@ -92,15 +93,34 @@ class ClearstreamAccountView(APIView):
             return bad_request(ser.errors)
         v = ser.validated_data
         try:
+            # Link account via Clearstream PMI API
+            client = ClearstreamClient()
+            result = client.link_account(
+                csd_participant=v['csd_participant'],
+                csd_account=v['csd_account'],
+                lei=v.get('lei'),
+                permissions=v.get('permissions')
+            )
+            
+            if not result:
+                return bad_request("Failed to link account in Clearstream PMI", status=500)
+            
+            # Create or update local account record
             acct, _ = ClearstreamAccount.objects.get_or_create(
                 csd_account=v['csd_account'],
                 defaults={
                     'csd_participant': v['csd_participant'],
                     'lei': v.get('lei'),
                     'permissions': v.get('permissions') or [],
-                    'linked': True,
+                    'linked': result.get('linked', True),
                 },
             )
+            
+            # Update linked status if account already existed
+            if acct.linked != result.get('linked', True):
+                acct.linked = result.get('linked', True)
+                acct.save()
+            
             return ok({'accountId': str(acct.id), 'linked': acct.linked})
         except Exception as e:
             return bad_request(f"Failed to create/link account: {str(e)}", status=500)
@@ -174,6 +194,24 @@ class PositionsView(APIView):
     )
     def get(self, request: Request, account: str) -> Response:
         try:
+            # Sync positions from Clearstream PMI
+            client = ClearstreamClient()
+            positions_data = client.get_positions(account)
+            
+            # Update local positions
+            from django.utils import timezone
+            for pos_data in positions_data:
+                Position.objects.update_or_create(
+                    account=pos_data['account'],
+                    isin=pos_data['isin'],
+                    defaults={
+                        'settled_qty': pos_data.get('settled_quantity', 0),
+                        'pending_qty': pos_data.get('pending_quantity', 0),
+                        'as_of': timezone.now(),
+                    }
+                )
+            
+            # Return positions from database
             items = [
                 {
                     'isin': p.isin,
@@ -265,8 +303,30 @@ class InstructionsView(APIView):
         ser = InstructionCreateSerializer(data=request.data)
         if not ser.is_valid():
             return bad_request(ser.errors)
-        # Stub: accept and return instructionId
-        return ok({'instructionId': 'PMI-INSTR-' + ser.validated_data['isin'], 'status': 'ACCEPTED'})
+        
+        v = ser.validated_data
+        try:
+            # Create instruction via Clearstream PMI API
+            client = ClearstreamClient()
+            result = client.create_instruction(
+                instruction_type=v['type'],
+                isin=v['isin'],
+                quantity=float(v['quantity']),
+                counterparty=v['counterparty'],
+                settlement_date=v.get('settlementDate').isoformat() if v.get('settlementDate') else None,
+                priority=v.get('priority'),
+                partial_allowed=v.get('partialAllowed')
+            )
+            
+            if not result:
+                return bad_request("Failed to create instruction in Clearstream PMI", status=500)
+            
+            return ok({
+                'instructionId': result.get('instruction_id', f'PMI-INSTR-{v["isin"]}'),
+                'status': result.get('status', 'ACCEPTED')
+            })
+        except Exception as e:
+            return bad_request(f"Failed to create instruction: {str(e)}", status=500)
 
 
 class ClearstreamSettlementView(APIView):
@@ -337,6 +397,19 @@ class ClearstreamSettlementView(APIView):
             return bad_request(ser.errors)
         v = ser.validated_data
         try:
+            # Create settlement via Clearstream PMI API
+            client = ClearstreamClient()
+            result = client.create_settlement(
+                isin=v['isin'],
+                quantity=float(v['quantity']),
+                account=v.get('account'),
+                counterparty=v.get('counterparty')
+            )
+            
+            if not result:
+                return bad_request("Failed to create settlement in Clearstream PMI", status=500)
+            
+            # Create local settlement record
             s = Settlement.objects.create(
                 source=Settlement.Source.CLEARSTREAM,
                 isin=v['isin'],
@@ -344,7 +417,7 @@ class ClearstreamSettlementView(APIView):
                 account=v.get('account'),
                 counterparty=v.get('counterparty'),
                 status=Settlement.Status.INITIATED,
-                timeline={'created': True},
+                timeline={'created': True, 'clearstream_settlement_id': result.get('settlement_id')},
             )
             return ok({'settlementId': str(s.id), 'status': s.status})
         except Exception as e:
