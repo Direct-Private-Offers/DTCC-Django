@@ -31,6 +31,11 @@ class InvestorProfile(models.Model):
     tax_id = models.CharField(max_length=64, null=True, blank=True)
     kyc_verified_at = models.DateTimeField(null=True, blank=True)
     kyc_expires_at = models.DateTimeField(null=True, blank=True)
+    # NEO Bank integration fields
+    neo_bank_synced = models.BooleanField(default=False)
+    neo_bank_sync_status = models.CharField(max_length=20, null=True, blank=True)  # PENDING, SYNCED, CONFLICT, ERROR
+    neo_bank_last_synced = models.DateTimeField(null=True, blank=True)
+    neo_bank_account_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -41,6 +46,8 @@ class InvestorProfile(models.Model):
             models.Index(fields=['wallet_address']),
             models.Index(fields=['kyc_status', 'aml_status']),
             models.Index(fields=['investor_type']),
+            models.Index(fields=['neo_bank_synced', 'neo_bank_sync_status']),
+            models.Index(fields=['neo_bank_account_id']),
         ]
     
     def __str__(self):
