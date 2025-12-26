@@ -6,6 +6,9 @@ from apps.core.idempotency import idempotent
 from .serializers import IssuanceRequestSerializer
 from apps.euroclear.client import EuroclearClient
 from apps.core.permissions import IsInGroup
+from apps.receipts.services import create_receipt
+from decimal import Decimal
+import uuid
 from ratelimit.decorators import ratelimit
 from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
@@ -116,6 +119,31 @@ class IssuanceView(APIView):
                 return bad_request('Investor not authorized for this security', status=403)
 
             tx_id = client.initiate_tokenization(payload)
+            
+            # Generate receipt for issuance
+            try:
+                transaction_uuid = str(uuid.uuid4())
+                receipt = create_receipt(
+                    receipt_type='ISSUANCE',
+                    investor=request.user,  # Link to issuer user, investor address in metadata
+                    transaction_id=transaction_uuid,
+                    isin=payload['isin'],
+                    quantity=Decimal(str(payload['amount'])),
+                    currency=security.get('currency', 'USD'),
+                    metadata={
+                        'investor_address': payload['investorAddress'],
+                        'transaction_id': tx_id,
+                        'offering_type': payload.get('offeringType', 'RegD'),
+                        'euroclear_ref': payload.get('euroclearRef'),
+                        'issuer_name': request.user.username,
+                    }
+                )
+            except Exception as receipt_error:
+                # Log receipt generation error but don't fail the issuance
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to generate receipt for issuance {tx_id}: {str(receipt_error)}")
+            
             return ok({
                 'transactionId': tx_id,
                 'isin': payload['isin'],

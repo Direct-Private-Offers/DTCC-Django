@@ -27,12 +27,27 @@ class EuroclearClient:
             return None
         
         try:
-            # Stubbed: in real implementation, call Euroclear
-            # Example: response = httpx.get(f"{self.base}/securities/{isin}", headers=self._headers(), timeout=self.timeout)
-            # response.raise_for_status()
-            # return response.json()
-            logger.debug(f"Fetching security details for ISIN: {isin}")
-            return {'isin': isin, 'name': 'Mock Security', 'currency': 'USD'}
+            # Production implementation: call Euroclear API
+            response = httpx.get(
+                f"{self.base}/securities/{isin}",
+                headers=self._headers(),
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                logger.warning(f"Security not found in Euroclear: {isin}")
+                return None
+            logger.error(f"HTTP error fetching security details for ISIN {isin}: {e.response.status_code}")
+            return None
+        except httpx.RequestError as e:
+            logger.error(f"Request error fetching security details for ISIN {isin}: {str(e)}")
+            # Fallback to mock in development if API is not available
+            if self.base.endswith('.example'):
+                logger.debug(f"Using mock data for ISIN: {isin}")
+                return {'isin': isin, 'name': 'Mock Security', 'currency': 'USD'}
+            return None
         except Exception as e:
             logger.error(f"Error fetching security details for ISIN {isin}: {str(e)}")
             return None
@@ -47,12 +62,25 @@ class EuroclearClient:
             return False
         
         try:
-            # Stubbed validation
-            # Example: response = httpx.post(f"{self.base}/investors/validate", json={'isin': isin, 'address': address}, headers=self._headers(), timeout=self.timeout)
-            # response.raise_for_status()
-            # return response.json().get('eligible', False)
-            logger.debug(f"Validating investor {address} for ISIN: {isin}")
-            return bool(isin and address)
+            # Production implementation: call Euroclear API
+            response = httpx.post(
+                f"{self.base}/investors/validate",
+                json={'isin': isin, 'address': address},
+                headers=self._headers(),
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json().get('eligible', False)
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error validating investor {address} for ISIN {isin}: {e.response.status_code}")
+            return False
+        except httpx.RequestError as e:
+            logger.error(f"Request error validating investor {address} for ISIN {isin}: {str(e)}")
+            # Fallback to mock in development if API is not available
+            if self.base.endswith('.example'):
+                logger.debug(f"Using mock validation for ISIN: {isin}, address: {address}")
+                return bool(isin and address)
+            return False
         except Exception as e:
             logger.error(f"Error validating investor {address} for ISIN {isin}: {str(e)}")
             return False
@@ -63,13 +91,27 @@ class EuroclearClient:
         Returns transaction ID on success, raises exception on error.
         """
         try:
-            # Stubbed tokenization call
-            # Example: response = httpx.post(f"{self.base}/tokenization/initiate", json=payload, headers=self._headers(), timeout=self.timeout)
-            # response.raise_for_status()
-            # return response.json().get('transactionId')
-            isin = payload.get('isin') or 'UNKNOWN'
-            logger.debug(f"Initiating tokenization for ISIN: {isin}")
-            return 'TX-' + isin
+            # Production implementation: call Euroclear API
+            response = httpx.post(
+                f"{self.base}/tokenization/initiate",
+                json=payload,
+                headers=self._headers(),
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result.get('transactionId') or result.get('transaction_id')
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error initiating tokenization: {e.response.status_code}")
+            raise Exception(f"Euroclear API error: {e.response.status_code}")
+        except httpx.RequestError as e:
+            logger.error(f"Request error initiating tokenization: {str(e)}")
+            # Fallback to mock in development if API is not available
+            if self.base.endswith('.example'):
+                isin = payload.get('isin') or 'UNKNOWN'
+                logger.debug(f"Using mock tokenization for ISIN: {isin}")
+                return 'TX-' + isin
+            raise Exception(f"Euroclear API request failed: {str(e)}")
         except Exception as e:
             logger.error(f"Error initiating tokenization: {str(e)}")
             raise
@@ -80,13 +122,27 @@ class EuroclearClient:
         Returns UTI on success, raises exception on error.
         """
         try:
-            # Stubbed: return a mock UTI
-            # Example: response = httpx.post(f"{self.base}/derivatives/report", json=payload, headers=self._headers(), timeout=self.timeout)
-            # response.raise_for_status()
-            # return response.json().get('uti')
-            isin = payload.get('isin') or 'UNKNOWN'
-            logger.debug(f"Reporting derivative for ISIN: {isin}")
-            return 'UTI-' + isin
+            # Production implementation: call Euroclear API
+            response = httpx.post(
+                f"{self.base}/derivatives/report",
+                json=payload,
+                headers=self._headers(),
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result.get('uti') or result.get('unique_trade_id')
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error reporting derivative: {e.response.status_code}")
+            raise Exception(f"Euroclear API error: {e.response.status_code}")
+        except httpx.RequestError as e:
+            logger.error(f"Request error reporting derivative: {str(e)}")
+            # Fallback to mock in development if API is not available
+            if self.base.endswith('.example'):
+                isin = payload.get('isin') or 'UNKNOWN'
+                logger.debug(f"Using mock derivative reporting for ISIN: {isin}")
+                return 'UTI-' + isin
+            raise Exception(f"Euroclear API request failed: {str(e)}")
         except Exception as e:
             logger.error(f"Error reporting derivative: {str(e)}")
             raise
