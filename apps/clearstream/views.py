@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from apps.core.permissions import IsInGroup
 from apps.core.responses import ok, bad_request, not_found
 from apps.core.idempotency import idempotent

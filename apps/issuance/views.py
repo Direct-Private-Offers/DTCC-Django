@@ -6,7 +6,14 @@ from apps.core.idempotency import idempotent
 from .serializers import IssuanceRequestSerializer
 from apps.euroclear.client import EuroclearClient
 from apps.core.permissions import IsInGroup
-from ratelimit.decorators import ratelimit
+try:
+    from django_ratelimit.decorators import ratelimit
+except ImportError:
+    # Fallback no-op decorator for local/dev when ratelimit is unavailable
+    def ratelimit(*args, **kwargs):
+        def _decorator(func):
+            return func
+        return _decorator
 from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 )

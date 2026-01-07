@@ -2,9 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from apps.core.healthcheck import healthcheck
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Healthcheck (no auth required)
+    path('api/health', healthcheck, name='healthcheck'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
@@ -23,4 +26,8 @@ urlpatterns = [
     path('api/reports/', include('apps.reports.urls')),
     path('api/storage/', include('apps.storage.urls')),
     path('api/', include('apps.api.urls')),
+    # Issuer Onboarding (BD Integration)
+    path('api/', include('apps.issuers.urls')),
+    # Bill Bitts / NEO Bank Payment Integration
+    path('', include('apps.payments.urls')),
 ]

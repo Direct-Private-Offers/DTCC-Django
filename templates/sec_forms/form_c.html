@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form C - {{ company_name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.75in;
+            @top-center {
+                content: "SEC Form C";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+        }
+        
+        .header h2 {
+            font-size: 14pt;
+            margin: 5px 0;
+        }
+        
+        .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            background: #e8f4f8;
+            padding: 5px 10px;
+            margin: 15px 0 10px 0;
+            border-left: 4px solid #0088cc;
+        }
+        
+        .field-group {
+            margin: 10px 0;
+            padding: 8px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+        }
+        
+        .field-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 220px;
+            color: #333;
+        }
+        
+        .field-value {
+            display: inline-block;
+            color: #000;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        table th {
+            background: #0088cc;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 10pt;
+        }
+        
+        table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            font-size: 10pt;
+        }
+        
+        .instructions {
+            font-size: 9pt;
+            font-style: italic;
+            color: #666;
+            border-left: 3px solid #ff9900;
+            padding-left: 10px;
+            margin: 10px 0;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .warning-box {
+            background: #fff8e1;
+            border: 2px solid #ffa726;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .warning-box h3 {
+            color: #e65100;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>UNITED STATES<br>SECURITIES AND EXCHANGE COMMISSION</h1>
+    <h2>FORM C</h2>
+    <p style="margin: 10px 0;">OFFERING STATEMENT UNDER REGULATION CROWDFUNDING</p>
+</div>
+
+<!-- PART I: BASIC INFORMATION -->
+<div class="section">
+    <div class="section-title">PART I: BASIC INFORMATION ABOUT THE ISSUER</div>
+    
+    <div class="field-group">
+        <span class="field-label">Legal Name of Issuer:</span>
+        <span class="field-value">{{ company_name }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">ISIN:</span>
+        <span class="field-value">{{ isin }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Website:</span>
+        <span class="field-value">{{ issuer.website|default("Not provided") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Offering Page URL:</span>
+        <span class="field-value">{{ issuer.offering_page_url }}</span>
+    </div>
+</div>
+
+<!-- PART II: OFFERING INFORMATION -->
+<div class="section">
+    <div class="section-title">PART II: INFORMATION ABOUT THE OFFERING</div>
+    
+    <div class="field-group">
+        <span class="field-label">Type of Security:</span>
+        <span class="field-value">{{ security_name|default("Digital Security Tokens") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Target Offering Amount:</span>
+        <span class="field-value">{{ total_offering }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Price Per Token:</span>
+        <span class="field-value">{{ price_per_token }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Minimum Investment:</span>
+        <span class="field-value">{{ min_investment }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Offering Deadline:</span>
+        <span class="field-value">{{ issuer.sec_form_data.offering_deadline|default("60 days from first sale") }}</span>
+    </div>
+</div>
+
+<div class="warning-box">
+    <h3>Investment Limits - Regulation Crowdfunding</h3>
+    <p>Under Regulation Crowdfunding, investors are subject to investment limits based on annual income and net worth:</p>
+    <ul>
+        <li><strong>If Annual Income OR Net Worth < $124,000:</strong> Greater of $2,500 or 5% of lesser value</li>
+        <li><strong>If Both Annual Income AND Net Worth ≥ $124,000:</strong> 10% of lesser value, up to $124,000</li>
+    </ul>
+    <p style="font-size: 9pt; color: #666; margin-top: 10px;">Investors must comply with these limits across all Reg CF offerings within a 12-month period.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PART III: COMPANY DESCRIPTION -->
+<div class="section">
+    <div class="section-title">PART III: COMPANY BUSINESS AND DESCRIPTION</div>
+    
+    <div class="field-group">
+        <p><strong>Company Overview:</strong></p>
+        <p style="text-align: justify; margin: 10px 0; line-height: 1.6;">
+            {{ issuer.description|default("Company description not provided.") }}
+        </p>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Industry:</span>
+        <span class="field-value">{{ issuer.sec_form_data.industry_group|default("Technology") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Year Founded:</span>
+        <span class="field-value">{{ issuer.created_at.year }}</span>
+    </div>
+</div>
+
+<!-- PART IV: USE OF PROCEEDS -->
+<div class="section">
+    <div class="section-title">PART IV: USE OF PROCEEDS</div>
+    
+    <p class="instructions">
+        Describe how the company intends to use the proceeds from this offering:
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Use Category</th>
+                <th>Amount</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if issuer.sec_form_data.use_of_proceeds %}
+                {% for item in issuer.sec_form_data.use_of_proceeds %}
+                <tr>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.amount }}</td>
+                    <td>{{ item.percentage }}%</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td>General Business Operations</td>
+                    <td>{{ total_offering }}</td>
+                    <td>100%</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- PART V: DIRECTORS AND OFFICERS -->
+<div class="section">
+    <div class="section-title">PART V: DIRECTORS, OFFICERS, AND KEY EMPLOYEES</div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Title/Position</th>
+                <th>Contact</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if issuer.sec_form_data.officers %}
+                {% for officer in issuer.sec_form_data.officers %}
+                <tr>
+                    <td>{{ officer.name }}</td>
+                    <td>{{ officer.title }}</td>
+                    <td>{{ officer.email|default("Not disclosed") }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; font-style: italic;">Information not provided</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- PART VI: OWNERSHIP AND CAPITAL STRUCTURE -->
+<div class="section">
+    <div class="section-title">PART VI: OWNERSHIP AND CAPITAL STRUCTURE</div>
+    
+    <div class="field-group">
+        <span class="field-label">Total Shares/Tokens Outstanding:</span>
+        <span class="field-value">{{ issuer.sec_form_data.shares_outstanding|default("To be determined") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Voting Rights:</span>
+        <span class="field-value">{{ issuer.sec_form_data.voting_rights|default("One vote per token") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Dividend Rights:</span>
+        <span class="field-value">{{ issuer.sec_form_data.dividend_rights|default("Subject to board approval") }}</span>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PART VII: FINANCIAL INFORMATION -->
+<div class="section">
+    <div class="section-title">PART VII: FINANCIAL INFORMATION</div>
+    
+    <p class="instructions">
+        Financial statements must be provided based on the amount raised in the last 12 months plus the current offering:
+    </p>
+    
+    <ul style="font-size: 10pt; margin: 15px 0;">
+        <li><strong>Up to $124,000:</strong> Financial statements certified by principal executive officer</li>
+        <li><strong>$124,000 - $618,000:</strong> Reviewed financial statements</li>
+        <li><strong>Over $618,000:</strong> Audited financial statements</li>
+    </ul>
+    
+    <div class="field-group">
+        <span class="field-label">Financial Statement Type:</span>
+        <span class="field-value">{{ issuer.sec_form_data.financial_type|default("Reviewed") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Most Recent Fiscal Year Revenue:</span>
+        <span class="field-value">{{ issuer.sec_form_data.revenue|default("$0") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Total Assets:</span>
+        <span class="field-value">{{ issuer.sec_form_data.total_assets|default("Not disclosed") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Total Liabilities:</span>
+        <span class="field-value">{{ issuer.sec_form_data.total_liabilities|default("Not disclosed") }}</span>
+    </div>
+</div>
+
+<!-- PART VIII: RISK FACTORS -->
+<div class="section">
+    <div class="section-title">PART VIII: RISK FACTORS</div>
+    
+    <div class="warning-box">
+        <h3>Material Risks</h3>
+        <p>Investing in this offering carries significant risks, including:</p>
+    </div>
+    
+    <ol style="margin: 15px 0; line-height: 1.6;">
+        <li><strong>Loss of Investment:</strong> You may lose your entire investment.</li>
+        <li><strong>Illiquidity:</strong> There may be no market for these securities, making them difficult to sell.</li>
+        <li><strong>Business Risk:</strong> The company is early-stage and may not achieve its business objectives.</li>
+        <li><strong>Dilution:</strong> Future fundraising may dilute your ownership percentage.</li>
+        <li><strong>Technology Risk:</strong> Blockchain/digital asset technologies are evolving and face regulatory uncertainty.</li>
+        <li><strong>Limited Information:</strong> Ongoing disclosure requirements are less than public companies.</li>
+    </ol>
+    
+    {% if issuer.doc_risks %}
+    <div class="field-group">
+        <p><strong>Additional Risk Disclosures:</strong></p>
+        <p style="font-size: 10pt;">See attached risk disclosure document: {{ issuer.doc_risks }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- PART IX: ONGOING REPORTING -->
+<div class="section">
+    <div class="section-title">PART IX: ONGOING REPORTING OBLIGATIONS</div>
+    
+    <p class="instructions">
+        Under Regulation Crowdfunding, the issuer must file annual reports within 120 days of fiscal year-end, containing:
+    </p>
+    
+    <ul style="font-size: 10pt; margin: 15px 0;">
+        <li>Financial statements (same level as offering)</li>
+        <li>Information on use of proceeds</li>
+        <li>Material changes to company business or operations</li>
+        <li>Director, officer, and 20%+ shareholder information</li>
+    </ul>
+    
+    <div class="field-group">
+        <span class="field-label">Reporting Commitment:</span>
+        <span class="field-value">Issuer commits to timely annual reporting via SEC EDGAR</span>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PART X: PAYMENT METHODS AND INVESTMENT PROCESS -->
+<div class="section">
+    <div class="section-title">PART X: INVESTMENT PROCESS AND PAYMENT</div>
+    
+    <div class="field-group">
+        <span class="field-label">Offering Platform:</span>
+        <span class="field-value">{{ issuer.offering_page_url }}</span>
+    </div>
+    
+    <p><strong>Accepted Payment Methods:</strong></p>
+    
+    <ul style="font-size: 10pt; margin: 10px 0;">
+        {% if issuer.paypal_account %}
+        <li>PayPal ({{ issuer.paypal_account }})</li>
+        {% endif %}
+        
+        {% if issuer.wire_bank_name %}
+        <li>Wire Transfer ({{ issuer.wire_bank_name }})</li>
+        {% endif %}
+        
+        {% if issuer.crypto_merchant_id %}
+        <li>Cryptocurrency (via Paybito)</li>
+        {% endif %}
+    </ul>
+    
+    <div class="field-group">
+        <p><strong>Cancellation Rights:</strong></p>
+        <p style="font-size: 10pt; margin: 10px 0; line-height: 1.5;">
+            Investors have the right to cancel their investment commitment for any reason until 48 hours before the offering deadline. 
+            If material changes are made to the offering, investors will be notified and have 5 business days to reconfirm or cancel.
+        </p>
+    </div>
+</div>
+
+<!-- PART XI: SOCIAL MEDIA AND COMMUNICATIONS -->
+<div class="section">
+    <div class="section-title">PART XI: INVESTOR COMMUNICATIONS CHANNELS</div>
+    
+    <div class="field-group">
+        <span class="field-label">Company Website:</span>
+        <span class="field-value">{{ issuer.website|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">LinkedIn:</span>
+        <span class="field-value">{{ issuer.linkedin|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Twitter/X:</span>
+        <span class="field-value">{{ issuer.twitter|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">YouTube:</span>
+        <span class="field-value">{{ issuer.youtube|default("N/A") }}</span>
+    </div>
+</div>
+
+<!-- SIGNATURE -->
+<div class="section" style="margin-top: 50px;">
+    <div class="section-title">SIGNATURE</div>
+    
+    <p style="text-align: justify; margin: 15px 0;">
+        Pursuant to the requirements of Regulation Crowdfunding (§227.100 et seq.), the issuer certifies that it has reasonable grounds to believe 
+        that it meets all of the requirements for filing on Form C and has duly caused this Form C to be signed on its behalf by the duly authorized undersigned.
+    </p>
+    
+    <div style="margin-top: 40px;">
+        <p><strong>Issuer:</strong> {{ company_name }}</p>
+        
+        <div style="border-top: 1px solid #000; width: 300px; margin: 30px 0 5px 0;"></div>
+        <p style="margin: 0; font-size: 10pt;">Signature of Authorized Representative</p>
+        
+        <div style="margin-top: 30px;">
+            <div style="display: inline-block; width: 300px;">
+                <div style="border-top: 1px solid #000;"></div>
+                <p style="margin: 0; font-size: 10pt;">Printed Name</p>
+            </div>
+            
+            <div style="display: inline-block; width: 200px; margin-left: 50px;">
+                <div style="border-top: 1px solid #000;"></div>
+                <p style="margin: 0; font-size: 10pt;">Title</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <div style="border-top: 1px solid #000; width: 200px;"></div>
+            <p style="margin: 0; font-size: 10pt;">Date</p>
+        </div>
+    </div>
+</div>
+
+<div style="font-size: 8pt; color: #999; margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd;">
+    <p><strong>Document Generated:</strong> {{ generated_date }}</p>
+    <p><strong>ISIN:</strong> {{ isin }}</p>
+    <p style="margin-top: 10px;">
+        This Form C was automatically generated by the DPO Ecosystem platform. 
+        Review carefully before filing with the SEC via EDGAR.
+    </p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form D - {{ company_name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.75in;
+            @top-center {
+                content: "SEC Form D";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+        }
+        
+        .header h2 {
+            font-size: 14pt;
+            margin: 5px 0;
+        }
+        
+        .header .omb {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            margin: 15px 0 10px 0;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .field-group {
+            margin: 10px 0;
+            padding: 8px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+        }
+        
+        .field-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 200px;
+            color: #333;
+        }
+        
+        .field-value {
+            display: inline-block;
+            color: #000;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        table th {
+            background: #0066cc;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 10pt;
+        }
+        
+        table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            font-size: 10pt;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .checkbox {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .checkbox.checked::after {
+            content: "✓";
+            display: block;
+            text-align: center;
+            line-height: 12px;
+            font-size: 10pt;
+        }
+        
+        .signature-section {
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 300px;
+            margin: 30px 0 5px 0;
+        }
+        
+        .instructions {
+            font-size: 9pt;
+            font-style: italic;
+            color: #666;
+            border-left: 3px solid #ff9900;
+            padding-left: 10px;
+            margin: 10px 0;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .footer-info {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>UNITED STATES<br>SECURITIES AND EXCHANGE COMMISSION</h1>
+    <h2>FORM D</h2>
+    <p style="margin: 10px 0;">NOTICE OF EXEMPT OFFERING OF SECURITIES</p>
+    <div class="omb">OMB APPROVAL: OMB Number: 3235-0076<br>Expires: August 31, 2024<br>Estimated average burden hours per response: 4.00</div>
+</div>
+
+<!-- PART A: OFFERING INFORMATION -->
+<div class="section">
+    <div class="section-title">PART A: OFFERING INFORMATION</div>
+    
+    <div class="field-group">
+        <span class="field-label">1. Issuer's Name:</span>
+        <span class="field-value">{{ company_name }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">2. Security Identifier (ISIN):</span>
+        <span class="field-value">{{ isin }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">3. Type of Security Offered:</span>
+        <span class="field-value">{{ security_name|default("Tokenized Securities") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">4. Total Offering Amount:</span>
+        <span class="field-value">{{ total_offering }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">5. Price Per Security Unit:</span>
+        <span class="field-value">{{ price_per_token }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">6. Minimum Investment Amount:</span>
+        <span class="field-value">{{ min_investment }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">7. First Sale Date:</span>
+        <span class="field-value">{{ published_at|default("Not yet commenced") }}</span>
+    </div>
+</div>
+
+<!-- PART B: ISSUER INFORMATION -->
+<div class="section">
+    <div class="section-title">PART B: ISSUER INFORMATION</div>
+    
+    <div class="field-group">
+        <span class="field-label">Company Legal Name:</span>
+        <span class="field-value">{{ company_name }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Website:</span>
+        <span class="field-value">{{ issuer.website|default("Not provided") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Year of Incorporation:</span>
+        <span class="field-value">{{ issuer.created_at.year }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Entity Type:</span>
+        <span class="field-value">Corporation</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">CIK (if applicable):</span>
+        <span class="field-value">{{ issuer.sec_form_data.cik|default("Not assigned") }}</span>
+    </div>
+</div>
+
+<!-- PART C: REGULATION D EXEMPTION -->
+<div class="section">
+    <div class="section-title">PART C: REGULATION D EXEMPTION CLAIMED</div>
+    
+    <p class="instructions">
+        Check the box for the section of Regulation D claimed for the offering:
+    </p>
+    
+    <div class="field-group">
+        <div><span class="checkbox checked"></span> Rule 506(b)</div>
+        <div style="margin-left: 30px; margin-top: 5px; font-size: 10pt; color: #555;">
+            Offering without general solicitation or advertising to unlimited accredited investors and up to 35 sophisticated investors
+        </div>
+    </div>
+    
+    <div class="field-group">
+        <div><span class="checkbox"></span> Rule 506(c)</div>
+        <div style="margin-left: 30px; margin-top: 5px; font-size: 10pt; color: #555;">
+            Offering with general solicitation or advertising only to accredited investors with verification
+        </div>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PART D: ISSUER SIZE AND REVENUE -->
+<div class="section">
+    <div class="section-title">PART D: ISSUER SIZE AND REVENUE</div>
+    
+    <div class="field-group">
+        <span class="field-label">Revenue Range:</span>
+        <span class="field-value">{{ issuer.sec_form_data.revenue_range|default("$0 - $1,000,000") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Aggregate Net Asset Value:</span>
+        <span class="field-value">{{ issuer.sec_form_data.net_asset_value|default("Not disclosed") }}</span>
+    </div>
+</div>
+
+<!-- PART E: RELATED PERSONS -->
+<div class="section">
+    <div class="section-title">PART E: RELATED PERSONS</div>
+    
+    <p class="instructions">
+        List directors, executive officers, promoters, and other related persons
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Street Address 1</th>
+                <th>City</th>
+                <th>State/Country</th>
+                <th>Zip/Postal Code</th>
+                <th>Relationship(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if issuer.sec_form_data.related_persons %}
+                {% for person in issuer.sec_form_data.related_persons %}
+                <tr>
+                    <td>{{ person.name }}</td>
+                    <td>{{ person.address }}</td>
+                    <td>{{ person.city }}</td>
+                    <td>{{ person.state }}</td>
+                    <td>{{ person.zip }}</td>
+                    <td>{{ person.relationship }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; font-style: italic;">No related persons listed</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- PART F: OFFERING AND SALES INFORMATION -->
+<div class="section">
+    <div class="section-title">PART F: OFFERING AND SALES INFORMATION</div>
+    
+    <div class="field-group">
+        <span class="field-label">Industry Group:</span>
+        <span class="field-value">{{ issuer.sec_form_data.industry_group|default("Technology") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Use of Proceeds:</span>
+        <span class="field-value">{{ issuer.description|truncate(200)|default("General business operations, technology development, and market expansion") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Type of Filing:</span>
+        <span class="field-value"><span class="checkbox checked"></span> New Notice</span>
+    </div>
+</div>
+
+<!-- PART G: PAYMENT AND SALES CHANNELS -->
+<div class="section">
+    <div class="section-title">PART G: PAYMENT RAILS AND DISTRIBUTION</div>
+    
+    <p><strong>Accepted Payment Methods:</strong></p>
+    
+    <div class="field-group">
+        {% if issuer.paypal_account %}
+        <div><span class="checkbox checked"></span> PayPal ({{ issuer.paypal_account }})</div>
+        {% endif %}
+        
+        {% if issuer.wire_bank_name %}
+        <div><span class="checkbox checked"></span> Wire Transfer</div>
+        <div style="margin-left: 30px; font-size: 10pt;">
+            Bank: {{ issuer.wire_bank_name }}<br>
+            Account: {{ issuer.wire_account_number }}<br>
+            Routing: {{ issuer.wire_routing_number }}<br>
+            {% if issuer.wire_swift_code %}SWIFT: {{ issuer.wire_swift_code }}{% endif %}
+        </div>
+        {% endif %}
+        
+        {% if issuer.crypto_merchant_id %}
+        <div><span class="checkbox checked"></span> Cryptocurrency (Merchant ID: {{ issuer.crypto_merchant_id }})</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PART H: ISSUER SOCIAL MEDIA AND ONLINE PRESENCE -->
+<div class="section">
+    <div class="section-title">PART H: ONLINE PRESENCE AND SOCIAL MEDIA</div>
+    
+    <div class="field-group">
+        <span class="field-label">Company Website:</span>
+        <span class="field-value">{{ issuer.website|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">LinkedIn:</span>
+        <span class="field-value">{{ issuer.linkedin|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Twitter/X:</span>
+        <span class="field-value">{{ issuer.twitter|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">YouTube:</span>
+        <span class="field-value">{{ issuer.youtube|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Facebook:</span>
+        <span class="field-value">{{ issuer.facebook|default("N/A") }}</span>
+    </div>
+    
+    <div class="field-group">
+        <span class="field-label">Instagram:</span>
+        <span class="field-value">{{ issuer.instagram|default("N/A") }}</span>
+    </div>
+</div>
+
+<!-- PART I: OFFERING DOCUMENTS -->
+<div class="section">
+    <div class="section-title">PART I: OFFERING DOCUMENTS</div>
+    
+    <p class="instructions">
+        The following documents are available to potential investors:
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Document Type</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Private Placement Memorandum (PPM)</td>
+                <td>{{ "✓ Available" if issuer.doc_prospectus else "Pending" }}</td>
+            </tr>
+            <tr>
+                <td>Subscription Agreement</td>
+                <td>{{ "✓ Available" if issuer.doc_subscription else "Pending" }}</td>
+            </tr>
+            <tr>
+                <td>Terms & Conditions</td>
+                <td>{{ "✓ Available" if issuer.doc_terms else "Pending" }}</td>
+            </tr>
+            <tr>
+                <td>Risk Disclosures</td>
+                <td>{{ "✓ Available" if issuer.doc_risks else "Pending" }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- SIGNATURE SECTION -->
+<div class="signature-section">
+    <div class="section-title">SIGNATURE AND SUBMISSION</div>
+    
+    <p class="instructions">
+        The issuer certifies that the information contained in this notice is true, complete, and correct to the best of its knowledge.
+    </p>
+    
+    <div style="margin-top: 40px;">
+        <p><strong>Issuer:</strong> {{ company_name }}</p>
+        
+        <div class="signature-line"></div>
+        <p style="margin: 0; font-size: 10pt;">Signature of Authorized Representative</p>
+        
+        <div style="margin-top: 30px;">
+            <div style="display: inline-block; width: 300px;">
+                <div class="signature-line"></div>
+                <p style="margin: 0; font-size: 10pt;">Printed Name</p>
+            </div>
+            
+            <div style="display: inline-block; width: 200px; margin-left: 50px;">
+                <div class="signature-line"></div>
+                <p style="margin: 0; font-size: 10pt;">Title</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <div class="signature-line" style="width: 200px;"></div>
+            <p style="margin: 0; font-size: 10pt;">Date</p>
+        </div>
+    </div>
+</div>
+
+<div class="footer-info">
+    <p><strong>Document Generated:</strong> {{ generated_date }}</p>
+    <p><strong>ISIN:</strong> {{ isin }}</p>
+    <p><strong>Offering Page:</strong> {{ issuer.offering_page_url }}</p>
+    <p style="font-size: 7pt; color: #999; margin-top: 10px;">
+        This document was automatically generated by the DPO Ecosystem platform. 
+        Verify all information before submission to the SEC.
+    </p>
+</div>
+
+</body>
+</html>

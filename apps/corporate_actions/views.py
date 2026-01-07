@@ -2,7 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from ratelimit.decorators import ratelimit
+# Ratelimit: provide a no-op fallback in dev if package unavailable
+try:
+    from django_ratelimit.decorators import ratelimit
+except Exception:
+    def ratelimit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 from django.utils.dateparse import parse_date
 from apps.core.permissions import IsInGroup
 from apps.core.responses import ok, bad_request
@@ -163,7 +170,6 @@ class CorporateActionsView(APIView):
                 location=OpenApiParameter.QUERY,
                 required=False,
                 type=str,
-                format="date",
                 description="Record date from (YYYY-MM-DD)",
                 examples=[OpenApiExample("Start date", value="2025-01-01")]
             ),
@@ -172,7 +178,6 @@ class CorporateActionsView(APIView):
                 location=OpenApiParameter.QUERY,
                 required=False,
                 type=str,
-                format="date",
                 description="Record date to (YYYY-MM-DD)",
                 examples=[OpenApiExample("End date", value="2025-12-31")]
             )

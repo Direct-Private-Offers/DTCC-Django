@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.responses import ok, bad_request, not_found
 from apps.core.idempotency import idempotent
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from .models import Wallet, Order, Swap, Trade
 from .serializers import (
     WalletCreateSerializer, OrderCreateSerializer, OrderUpdateSerializer,

@@ -8,7 +8,6 @@ import json
 import logging
 from typing import Optional, Dict, Any
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,19 @@ def get_web3_provider(rpc_url: Optional[str] = None) -> Web3:
     # Add POA middleware for networks like BSC that use Proof of Authority
     network = os.getenv('BLOCKCHAIN_NETWORK', '').upper()
     if network in ['BSC', 'BINANCE', 'POLYGON']:
-        w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        # Try Web3 v5 style middleware first, then v6 fallback, else warn
+        try:
+            from web3.middleware import geth_poa_middleware  # Web3 v5
+            w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+            logger.info("Injected geth_poa_middleware for POA network")
+        except Exception:
+            try:
+                # Web3 v6 moved POA middleware
+                from web3.middleware.proof_of_authority import POA
+                w3.middleware_onion.inject(POA, layer=0)
+                logger.info("Injected POA middleware for POA network (Web3 v6)")
+            except Exception as e:
+                logger.warning(f"POA middleware not available; continuing without. Error: {e}")
     
     # Verify connection
     try:

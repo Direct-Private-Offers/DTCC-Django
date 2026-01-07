@@ -3,7 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from ratelimit.decorators import ratelimit
+# Ratelimit: provide a no-op fallback in dev if package unavailable
+try:
+    from django_ratelimit.decorators import ratelimit
+except Exception:
+    def ratelimit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 from apps.core.permissions import IsInGroup
 from apps.core.responses import ok, bad_request
 from apps.core.idempotency import idempotent

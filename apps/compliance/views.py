@@ -12,7 +12,7 @@ from apps.compliance.models import InvestorProfile, KYCDocument, AMLCheck, Audit
 from apps.compliance.serializers import (
     InvestorProfileSerializer, KYCDocumentSerializer, AMLCheckSerializer
 )
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from apps.core.schemas import ERROR_400, ERROR_401, ERROR_403, ERROR_404
 import logging

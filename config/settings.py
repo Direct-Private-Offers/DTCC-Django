@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.storage',
+    'apps.payments',  # Bill Bitts / NEO Bank payment integration
+    'apps.issuers',  # Issuer onboarding (BD integration)
 ]
 
 MIDDLEWARE = [
@@ -68,18 +70,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-# Database configuration - PostgreSQL required
+# Database configuration - PostgreSQL for production, SQLite for development
 # Set DATABASE_URL environment variable, e.g.:
 # postgres://user:password@localhost:5432/dbname
 # or for PostgreSQL with SSL:
 # postgres://user:password@host:5432/dbname?sslmode=require
+# For SQLite: sqlite:///./db.sqlite3
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
-    raise ValueError(
-        "DATABASE_URL environment variable is required. "
-        "Set it to a PostgreSQL connection string, e.g.: "
-        "postgres://user:password@localhost:5432/dbname"
-    )
+    # Default to SQLite for development
+    DATABASE_URL = 'sqlite:///./db.sqlite3'
+    if not DEBUG:
+        raise ValueError(
+            "DATABASE_URL environment variable is required in production. "
+            "Set it to a PostgreSQL connection string, e.g.: "
+            "postgres://user:password@localhost:5432/dbname"
+        )
 
 DATABASES = {
     'default': dj_database_url.parse(
@@ -311,3 +317,12 @@ else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Fallback to console
 
 DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
+
+# Bill Bitts / NEO Bank Payment Integration
+BILLBITTS_API_URL = os.getenv('BILLBITTS_API_URL', 'https://api.billbitcoins.com')
+BILLBITTS_API_KEY = os.getenv('BILLBITTS_API_KEY', '')
+BILLBITTS_PRIVATE_KEY_PATH = os.getenv('BILLBITTS_PRIVATE_KEY_PATH', os.path.join(BASE_DIR, 'keys', 'billbitts_private.pem'))
+
+# Omnisend Marketing Automation
+OMNISEND_API_KEY = os.getenv('OMNISEND_API_KEY', '')
+
