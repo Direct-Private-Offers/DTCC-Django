@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.db import transaction
 from .models import Wallet, Order, Swap, Trade
 from .blockchain import get_token_balance, transfer_tokens
+from apps.receipts.services import create_receipt
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +138,49 @@ def execute_trade(buy_order: Order, sell_order: Order, quantity: Decimal, price:
         
         buy_order.save()
         sell_order.save()
+        
+        # Generate transfer receipts for both parties
+        try:
+            # Receipt for buyer (transfer receipt)
+            create_receipt(
+                receipt_type='TRANSFER',
+                investor=buy_order.wallet.user,
+                transaction_id=str(trade.id),
+                isin=buy_order.isin,
+                quantity=quantity,
+                amount=total_value,
+                currency='USD',  # Could be determined from payment_token
+                metadata={
+                    'from_address': sell_order.wallet.address,
+                    'to_address': buy_order.wallet.address,
+                    'trade_id': str(trade.id),
+                    'price_per_unit': str(price),
+                    'from_name': sell_order.wallet.user.username if sell_order.wallet.user else 'Seller',
+                    'to_name': buy_order.wallet.user.username if buy_order.wallet.user else 'Buyer',
+                }
+            )
+            
+            # Receipt for seller (transfer receipt)
+            create_receipt(
+                receipt_type='TRANSFER',
+                investor=sell_order.wallet.user,
+                transaction_id=str(uuid.uuid4()),  # Different transaction ID for seller
+                isin=sell_order.isin,
+                quantity=quantity,
+                amount=total_value,
+                currency='USD',
+                metadata={
+                    'from_address': sell_order.wallet.address,
+                    'to_address': buy_order.wallet.address,
+                    'trade_id': str(trade.id),
+                    'price_per_unit': str(price),
+                    'from_name': sell_order.wallet.user.username if sell_order.wallet.user else 'Seller',
+                    'to_name': buy_order.wallet.user.username if buy_order.wallet.user else 'Buyer',
+                }
+            )
+        except Exception as receipt_error:
+            # Log receipt generation error but don't fail the trade
+            logger.error(f"Failed to generate receipts for trade {trade.id}: {str(receipt_error)}")
         
         logger.info(f"Executed trade: {trade.id}, quantity: {quantity}, price: {price}")
         return trade

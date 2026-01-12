@@ -25,6 +25,10 @@ urlpatterns = [
     path('api/notifications/', include('apps.notifications.urls')),
     path('api/reports/', include('apps.reports.urls')),
     path('api/storage/', include('apps.storage.urls')),
+    path('api/xetra/', include('apps.xetra.urls')),
+    path('api/receipts/', include('apps.receipts.urls')),
+    path('api/neo-bank/', include('apps.neo_bank.urls')),
+    path('api/fx-market/', include('apps.fx_market.urls')),
     path('api/', include('apps.api.urls')),
     # Issuer Onboarding (BD Integration)
     path('api/', include('apps.issuers.urls')),

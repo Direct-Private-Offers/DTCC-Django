@@ -4,8 +4,18 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key-change-me')
-DEBUG = os.getenv('DEBUG', 'true').lower() == 'true'
+# SECRET_KEY must be set in production - fail if not provided
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('ENVIRONMENT') == 'production' or not os.getenv('ENVIRONMENT'):
+        raise ValueError("DJANGO_SECRET_KEY environment variable must be set in production")
+    SECRET_KEY = 'dev-secret-key-change-me-in-production'
+
+# DEBUG defaults to False for security
+DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
+# Fail-safe: if ENVIRONMENT is production, force DEBUG=False
+if os.getenv('ENVIRONMENT') == 'production':
+    DEBUG = False
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -32,8 +42,15 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.storage',
+<<<<<<< HEAD
     'apps.payments',  # Bill Bitts / NEO Bank payment integration
     'apps.issuers',  # Issuer onboarding (BD integration)
+=======
+    'apps.xetra',
+    'apps.receipts',
+    'apps.neo_bank',
+    'apps.fx_market',
+>>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
 ]
 
 MIDDLEWARE = [
@@ -181,9 +198,20 @@ else:
 QUICKNODE_URL = os.getenv('QUICKNODE_URL', '')
 BLOCKCHAIN_RPC_URL = os.getenv('BLOCKCHAIN_RPC_URL', QUICKNODE_URL)
 ISSUANCE_CONTRACT_ADDRESS = os.getenv('ISSUANCE_CONTRACT_ADDRESS', '')
+# Production contract addresses (from deployment-proxy-addresses.json)
+STO_CONTRACT_ADDRESS = os.getenv('STO_CONTRACT_ADDRESS', ISSUANCE_CONTRACT_ADDRESS)
+DERIVATIVES_REPORTER_CONTRACT_ADDRESS = os.getenv('DERIVATIVES_REPORTER_CONTRACT_ADDRESS', '')
+EUROCLEAR_BRIDGE_CONTRACT_ADDRESS = os.getenv('EUROCLEAR_BRIDGE_CONTRACT_ADDRESS', '')
 ISSUANCE_CONTRACT_ABI = os.getenv('ISSUANCE_CONTRACT_ABI', '')
-BLOCKCHAIN_NETWORK = os.getenv('BLOCKCHAIN_NETWORK', 'BSC')  # BSC, Ethereum, Polygon, etc.
+BLOCKCHAIN_NETWORK = os.getenv('BLOCKCHAIN_NETWORK', 'ARBITRUM_NOVA')  # ARBITRUM_NOVA, BSC, Ethereum, Polygon, etc.
 START_BLOCK_NUMBER = int(os.getenv('START_BLOCK_NUMBER', '0'))
+
+# Validate production contract addresses in production
+if os.getenv('ENVIRONMENT') == 'production':
+    if not STO_CONTRACT_ADDRESS:
+        raise ValueError("STO_CONTRACT_ADDRESS must be set in production")
+    if not BLOCKCHAIN_RPC_URL:
+        raise ValueError("BLOCKCHAIN_RPC_URL or QUICKNODE_URL must be set in production")
 
 # Logging Configuration
 LOGGING = {
@@ -318,6 +346,7 @@ else:
 
 DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
 
+<<<<<<< HEAD
 # Bill Bitts / NEO Bank Payment Integration
 BILLBITTS_API_URL = os.getenv('BILLBITTS_API_URL', 'https://api.billbitcoins.com')
 BILLBITTS_API_KEY = os.getenv('BILLBITTS_API_KEY', '')
@@ -326,3 +355,15 @@ BILLBITTS_PRIVATE_KEY_PATH = os.getenv('BILLBITTS_PRIVATE_KEY_PATH', os.path.joi
 # Omnisend Marketing Automation
 OMNISEND_API_KEY = os.getenv('OMNISEND_API_KEY', '')
 
+=======
+# CSD Credential Validation (warnings in production, not errors to allow development)
+if os.getenv('ENVIRONMENT') == 'production':
+    import logging
+    logger = logging.getLogger(__name__)
+    if not os.getenv('EUROCLEAR_API_KEY') or os.getenv('EUROCLEAR_API_BASE', '').endswith('.example'):
+        logger.warning("Euroclear production credentials not configured")
+    if not os.getenv('CLEARSTREAM_PMI_KEY') or os.getenv('CLEARSTREAM_PMI_BASE', '').endswith('.example'):
+        logger.warning("Clearstream production credentials not configured")
+    if not os.getenv('XETRA_API_KEY') or os.getenv('XETRA_API_BASE', '').endswith('.example'):
+        logger.warning("XETRA production credentials not configured")
+>>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c

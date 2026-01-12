@@ -529,7 +529,12 @@ curl -X POST http://localhost:8000/api/clearstream/accounts \
 
 ### Environment Variables
 
-> 📖 **Complete Guide**: See [Environment Setup Guide](docs/env-setup.md) for detailed configuration
+> 📖 **Complete Guide**: See [Environment Setup Guide](../ENVIRONMENT_SETUP.md) or [ENV_SETUP.md](ENV_SETUP.md) for detailed configuration
+
+**Quick Setup:**
+1. Copy `.env.example` to `.env`
+2. Fill in required variables (see `ENV_SETUP.md`)
+3. Required: `DJANGO_SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`
 
 #### Core Settings
 | Variable | Description | Required |

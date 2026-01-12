@@ -26,6 +26,12 @@ class Settlement(models.Model):
     timeline = models.JSONField(default=dict)
     tx_hash = models.CharField(max_length=128, null=True, blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    # FX-to-Market integration fields
+    fx_market_synced = models.BooleanField(default=False)
+    fx_market_settlement_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    fx_market_status = models.CharField(max_length=50, null=True, blank=True)
+    fx_market_reconciled = models.BooleanField(default=False)
+    fx_market_reconciled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,6 +39,8 @@ class Settlement(models.Model):
         indexes = [
             models.Index(fields=['status', 'created_at']),
             models.Index(fields=['isin', 'status']),
+            models.Index(fields=['fx_market_synced', 'fx_market_reconciled']),
+            models.Index(fields=['fx_market_settlement_id']),
         ]
 
     def __str__(self):

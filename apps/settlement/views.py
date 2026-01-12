@@ -20,6 +20,7 @@ from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 )
 from apps.core.schemas import ERROR_400, ERROR_401, ERROR_403, ERROR_404, ERROR_500
+from apps.receipts.services import create_receipt
 
 
 class SettlementView(APIView):
@@ -137,6 +138,33 @@ class SettlementView(APIView):
             )
         except Exception as e:
             return bad_request(f"Failed to create settlement: {str(e)}", status=500)
+        
+        # Generate settlement receipt
+        try:
+            create_receipt(
+                receipt_type='SETTLEMENT',
+                investor=request.user,
+                transaction_id=str(s.id),
+                isin=v['isin'],
+                quantity=quantity,
+                currency='USD',
+                metadata={
+                    'settlement_id': str(s.id),
+                    'source': s.source,
+                    'counterparty': v.get('counterparty') or v.get('fromAddress', 'N/A'),
+                    'account': v.get('account', 'N/A'),
+                    'trade_date': v.get('tradeDate').isoformat() if v.get('tradeDate') else None,
+                    'value_date': v.get('valueDate').isoformat() if v.get('valueDate') else None,
+                    'buyer_name': request.user.username,
+                    'seller_name': v.get('counterparty') or 'Counterparty',
+                }
+            )
+        except Exception as receipt_error:
+            # Log but don't fail settlement creation
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to generate receipt for settlement {s.id}: {str(receipt_error)}")
+        
         # In a later step: enqueue Celery job to sync lifecycle
         return ok({
             'settlementId': str(s.id),
