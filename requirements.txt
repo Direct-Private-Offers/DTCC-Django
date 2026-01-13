@@ -20,7 +20,7 @@ httpx==0.28.1
 # Chain
 web3==6.20.3
 eth-account==0.13.4
-eth-utils==5.1.0
+eth-utils==4.1.1
 
 # Utils
 python-dotenv==1.0.1
