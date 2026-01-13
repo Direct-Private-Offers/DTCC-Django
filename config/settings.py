@@ -154,5 +154,17 @@ else:
     # Default localhost origins for development
     CORS_ALLOWED_ORIGINS = [
         'http://localhost:3000',
-        'http://127.0.](#)
-
+        'http://127.0.0.1:3000',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
+
+# Blockchain Configuration
+QUICKNODE_URL = os.getenv('QUICKNODE_URL', '')
+BLOCKCHAIN_RPC_URL = os.getenv('BLOCKCHAIN_RPC_URL', QUICKNODE_URL)
+ISSUANCE_CONTRACT_ADDRESS = os.getenv('ISSUANCE_CONTRACT_ADDRESS', '')
+ISSUANCE_CONTRACT_ABI = os.getenv('ISSUANCE_CONTRACT_ABI', '')
+BLOCKCHAIN_NETWORK = os.getenv('BLOCKCHAIN_NETWORK', 'BSC')
+START_BLOCK_NUMBER = int(os.getenv('START_BLOCK_NUMBER', '0'))
