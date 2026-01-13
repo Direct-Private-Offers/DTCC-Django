@@ -32,4 +32,6 @@ pytest==8.3.2
 pytest-django==4.9.0
 respx==0.21.1
 freezegun==1.5.1
-coverage==7.6.4
+coverage==7.6.4  
+# Vercel deployment 
+vercel-wsgi==0.1.1 
