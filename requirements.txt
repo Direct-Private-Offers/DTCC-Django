@@ -20,7 +20,7 @@ httpx==0.28.1
 # Chain
 web3==7.2.0
 eth-account==0.10.0
-eth-utils==2.3.1
+eth-utils==5.1.0
 
 # Utils
 python-dotenv==1.0.1
@@ -33,5 +33,4 @@ pytest-django==4.9.0
 respx==0.21.1
 freezegun==1.5.1
 coverage==7.6.4  
-# Vercel deployment 
-vercel-wsgi==0.1.1 
+
