@@ -1,18 +1,20 @@
+from http.server import BaseHTTPRequestHandler
 import json
 
-def handler(event, context):
-    """Vercel serverless handler"""
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        
+        response = {
+            'status':  'success',
+            'message': 'Minimal handler works! ',
+            'path': self. path
+        }
+        
+        self.wfile.write(json.dumps(response).encode())
+        return
     
-    path = event. get('path', '/')
-    
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-        'body': json. dumps({
-            'status': 'success',
-            'message': 'Django API is running!',
-            'path': path,
-        })
-    }
+    def do_POST(self):
+        self.do_GET()
