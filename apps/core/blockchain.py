@@ -8,17 +8,17 @@ import json
 import logging
 from typing import Optional, Dict, Any
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware.geth_poa import geth_poa_middleware
 
 logger = logging.getLogger(__name__)
 
 
 def get_web3_provider(rpc_url: Optional[str] = None) -> Web3:
     """
-    Initialize and return a Web3 provider instance.
+    Initialize and return a Web3 provider instance. 
     
     Args:
-        rpc_url: Optional RPC URL. If not provided, uses QUICKNODE_URL or default.
+        rpc_url: Optional RPC URL. If not provided, uses QUICKNODE_URL or default. 
     
     Returns:
         Web3 instance connected to the provider
@@ -26,7 +26,7 @@ def get_web3_provider(rpc_url: Optional[str] = None) -> Web3:
     url = rpc_url or os.getenv('QUICKNODE_URL') or os.getenv('BLOCKCHAIN_RPC_URL')
     if not url:
         raise ValueError(
-            "No RPC URL provided. Set QUICKNODE_URL or BLOCKCHAIN_RPC_URL environment variable."
+            "No RPC URL provided.  Set QUICKNODE_URL or BLOCKCHAIN_RPC_URL environment variable."
         )
     
     w3 = Web3(Web3.HTTPProvider(url))
@@ -38,7 +38,7 @@ def get_web3_provider(rpc_url: Optional[str] = None) -> Web3:
     
     # Verify connection
     try:
-        block_number = w3.eth.block_number
+        block_number = w3.eth. block_number
         logger.info(f"Connected to blockchain at block {block_number}")
     except Exception as e:
         logger.error(f"Failed to connect to blockchain: {str(e)}")
@@ -53,8 +53,8 @@ def get_contract_instance(w3: Web3, contract_address: str, abi_path: Optional[st
     
     Args:
         w3: Web3 instance
-        contract_address: Smart contract address
-        abi_path: Optional path to ABI JSON file. If not provided, uses ISSUANCE_CONTRACT_ABI env var or default path.
+        contract_address:  Smart contract address
+        abi_path: Optional path to ABI JSON file.  If not provided, uses ISSUANCE_CONTRACT_ABI env var or default path.
     
     Returns:
         Contract instance
@@ -63,24 +63,24 @@ def get_contract_instance(w3: Web3, contract_address: str, abi_path: Optional[st
     
     # Load ABI
     abi_str = os.getenv('ISSUANCE_CONTRACT_ABI')
-    if abi_path:
+    if abi_path: 
         with open(abi_path, 'r') as f:
-            abi = json.load(f)
+            abi = json. load(f)
     elif abi_str:
         try:
-            abi = json.loads(abi_str)
+            abi = json. loads(abi_str)
         except json.JSONDecodeError:
             # Try as file path
             with open(abi_str, 'r') as f:
                 abi = json.load(f)
     else:
         # Default ABI path
-        default_path = os.path.join(os.path.dirname(__file__), '..', 'contracts', 'IssuanceContract.abi.json')
+        default_path = os.path.join(os.path.dirname(__file__), '..', 'contracts', 'IssuanceContract. abi. json')
         if os.path.exists(default_path):
             with open(default_path, 'r') as f:
                 abi = json.load(f)
         else:
-            raise ValueError("No ABI provided. Set ISSUANCE_CONTRACT_ABI or provide abi_path.")
+            raise ValueError("No ABI provided.  Set ISSUANCE_CONTRACT_ABI or provide abi_path.")
     
     contract = w3.eth.contract(address=address, abi=abi)
     logger.info(f"Loaded contract at {address}")
@@ -89,7 +89,7 @@ def get_contract_instance(w3: Web3, contract_address: str, abi_path: Optional[st
 
 def get_latest_block(w3: Web3) -> int:
     """
-    Get the latest block number.
+    Get the latest block number. 
     
     Args:
         w3: Web3 instance
@@ -100,7 +100,7 @@ def get_latest_block(w3: Web3) -> int:
     return w3.eth.block_number
 
 
-def parse_event_log(w3: Web3, contract, tx_hash: str, event_name: str) -> Optional[Dict[str, Any]]:
+def parse_event_log(w3: Web3, contract, tx_hash: str, event_name: str) -> Optional[Dict[str, Any]]: 
     """
     Parse event logs from a transaction receipt.
     
@@ -115,9 +115,9 @@ def parse_event_log(w3: Web3, contract, tx_hash: str, event_name: str) -> Option
     """
     try:
         receipt = w3.eth.get_transaction_receipt(tx_hash)
-        event_abi = [e for e in contract.abi if e.get('type') == 'event' and e.get('name') == event_name]
+        event_abi = [e for e in contract.abi if e. get('type') == 'event' and e.get('name') == event_name]
         
-        if not event_abi:
+        if not event_abi: 
             logger.warning(f"Event {event_name} not found in contract ABI")
             return None
         
@@ -128,7 +128,7 @@ def parse_event_log(w3: Web3, contract, tx_hash: str, event_name: str) -> Option
             return logs[0]['args']
         return None
     except Exception as e:
-        logger.error(f"Error parsing event log: {str(e)}")
+        logger. error(f"Error parsing event log: {str(e)}")
         return None
 
 
@@ -149,13 +149,12 @@ def wait_for_confirmation(w3: Web3, tx_hash: str, timeout: int = 300, poll_inter
     start_time = time.time()
     
     while time.time() - start_time < timeout:
-        try:
-            receipt = w3.eth.get_transaction_receipt(tx_hash)
-            if receipt:
+        try: 
+            receipt = w3.eth. get_transaction_receipt(tx_hash)
+            if receipt: 
                 return True
         except Exception:
             pass
         time.sleep(poll_interval)
     
     return False
-
