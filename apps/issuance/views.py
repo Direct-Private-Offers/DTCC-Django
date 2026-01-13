@@ -6,7 +6,7 @@ from apps.core.idempotency import idempotent
 from .serializers import IssuanceRequestSerializer
 from apps.euroclear.client import EuroclearClient
 from apps.core.permissions import IsInGroup
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 )
