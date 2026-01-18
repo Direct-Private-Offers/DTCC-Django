@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any
 from decimal import Decimal
 from web3 import Web3
 from apps.core.blockchain import get_web3_provider, wait_for_confirmation
+from web3.middleware import geth_poa_middleware
 
 logger = logging.getLogger(__name__)
 
