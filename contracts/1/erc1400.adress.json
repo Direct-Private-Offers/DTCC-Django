@@ -1,0 +1,10 @@
+```json
+{
+  "chain_id": 1,
+  "network": "ethereum-mainnet",
+  "contract_name": "ERC1400",
+  "environment": "mainnet",
+  "address": "0x0000000000000000000000000000000000000000",
+  "notes": "PLACEHOLDER. Replace with deployed ERC1400 address for mainnet."
+}
+```
