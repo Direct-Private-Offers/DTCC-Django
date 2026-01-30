@@ -4,7 +4,9 @@
 
 **This project requires Python 3.11** for ecosystem compatibility.
 
-The `.python-version` file in the project root specifies Python 3.11.
+The `runtime.txt` file in the project root specifies Python 3.11 for deployment platforms.
+
+Note: A `.python-version` file also exists locally but is gitignored (used for pyenv/local development).
 
 ## Deployment Platforms
 
@@ -20,7 +22,7 @@ Railway is the **recommended deployment platform** for this project because:
 
 **Configuration:** `railway.toml`
 
-**Python Version:** Automatically detected from `.python-version` file
+**Python Version:** Automatically detected from `runtime.txt` file (Python 3.11)
 
 ### ⚠️ Vercel (INCOMPATIBLE - DO NOT USE)
 
