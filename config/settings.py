@@ -42,15 +42,12 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.storage',
-<<<<<<< HEAD
     'apps.payments',  # Bill Bitts / NEO Bank payment integration
-    'apps.issuers',  # Issuer onboarding (BD integration)
-=======
-    'apps.xetra',
-    'apps.receipts',
-    'apps.neo_bank',
-    'apps.fx_market',
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
+    'apps.issuers',   # Issuer onboarding (BD integration)
+    'apps.xetra',     # XETRA Deutsche Börse integration
+    'apps.receipts',  # Receipt generation
+    'apps.neo_bank',  # NEO Bank sync
+    'apps.fx_market', # FX Market integration
 ]
 
 MIDDLEWARE = [
@@ -331,31 +328,20 @@ REST_FRAMEWORK['DEFAULT_VERSIONING_CLASS'] = 'apps.core.versioning.CustomURLPath
 REST_FRAMEWORK['ALLOWED_VERSIONS'] = ['v1', 'v2']
 REST_FRAMEWORK['DEFAULT_VERSION'] = 'v1'
 
-# Email Configuration - SendGrid
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
-SENDGRID_FROM_EMAIL = os.getenv('SENDGRID_FROM_EMAIL', os.getenv('DEFAULT_FROM_EMAIL', 'noreply@dtcc-sto.com'))
-SENDGRID_FROM_NAME = os.getenv('SENDGRID_FROM_NAME', 'DTCC STO Backend')
+# Email Configuration - Django email backend disabled (using Omnisend API directly)
+# Django's built-in email system is not used - all emails sent via apps.payments.omnisend_service
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Fallback for Django admin emails only
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@dtcc-sto.com')
 
-# Django Email Backend
-# Use SendGrid backend if API key is provided, otherwise fallback to console for development
-if SENDGRID_API_KEY:
-    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-    SENDGRID_SANDBOX_MODE_IN_DEBUG = DEBUG  # Use sandbox mode in debug
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Fallback to console
-
-DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
-
-<<<<<<< HEAD
 # Bill Bitts / NEO Bank Payment Integration
 BILLBITTS_API_URL = os.getenv('BILLBITTS_API_URL', 'https://api.billbitcoins.com')
 BILLBITTS_API_KEY = os.getenv('BILLBITTS_API_KEY', '')
 BILLBITTS_PRIVATE_KEY_PATH = os.getenv('BILLBITTS_PRIVATE_KEY_PATH', os.path.join(BASE_DIR, 'keys', 'billbitts_private.pem'))
 
-# Omnisend Marketing Automation
+# Omnisend Marketing Automation (used by apps.payments for trade confirmations)
 OMNISEND_API_KEY = os.getenv('OMNISEND_API_KEY', '')
+OMNISEND_API_BASE = os.getenv('OMNISEND_API_BASE', 'https://api.omnisend.com/v3')
 
-=======
 # CSD Credential Validation (warnings in production, not errors to allow development)
 if os.getenv('ENVIRONMENT') == 'production':
     import logging
@@ -366,4 +352,3 @@ if os.getenv('ENVIRONMENT') == 'production':
         logger.warning("Clearstream production credentials not configured")
     if not os.getenv('XETRA_API_KEY') or os.getenv('XETRA_API_BASE', '').endswith('.example'):
         logger.warning("XETRA production credentials not configured")
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c

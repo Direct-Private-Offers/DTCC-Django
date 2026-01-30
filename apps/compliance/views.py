@@ -12,13 +12,13 @@ from apps.compliance.models import InvestorProfile, KYCDocument, AMLCheck, Audit
 from apps.compliance.serializers import (
     InvestorProfileSerializer, KYCDocumentSerializer, AMLCheckSerializer
 )
-<<<<<<< HEAD
-from django_ratelimit.decorators import ratelimit
-=======
+try:
+    from django_ratelimit.decorators import ratelimit
+except ImportError:
+    # Fallback: try alternative package name
+    from ratelimit.decorators import ratelimit
 from apps.neo_bank.models import KycSyncStatus
 from apps.neo_bank.services import NeoBankSyncService
-from ratelimit.decorators import ratelimit
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from apps.core.schemas import ERROR_400, ERROR_401, ERROR_403, ERROR_404
 from django.utils import timezone
