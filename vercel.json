@@ -1,19 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb"
-      }
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.11"
     }
-  ],
+  },
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11",
+      "maxDuration": 10
+    }
+  },
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.py"
-    }
+    { "src": "/api/(.*)", "dest": "/api/index.py" }
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings"
