@@ -4,6 +4,8 @@
 
 This Django application is deployed on **Railway** using Python 3.11.
 
+**Simplified Architecture:** Django + PostgreSQL only (no Redis, no Celery, no workers needed!)
+
 ## Python Version
 
 **Required:** Python 3.11
@@ -27,7 +29,8 @@ Railway automatically detects and deploys Django applications using Nixpacks.
 - Railway account (https://railway.app)
 - GitHub repository connected to Railway
 - PostgreSQL database (provided by Railway)
-- Redis instance (provided by Railway)
+
+**Note:** Redis is NO LONGER needed - the backend has been simplified to Django-only!
 
 #### 2. Connect Repository
 
@@ -45,19 +48,18 @@ railway link
 railway init
 ```
 
-#### 3. Add Services
+#### 3. Add PostgreSQL Database
 
-Railway provides managed PostgreSQL and Redis:
+Railway provides managed PostgreSQL:
 
 ```bash
 # Add PostgreSQL database
 railway add --database postgresql
-
-# Add Redis
-railway add --database redis
 ```
 
-Railway automatically injects `DATABASE_URL` and `REDIS_URL` environment variables.
+Railway automatically injects the `DATABASE_URL` environment variable.
+
+**No Redis needed!** The application has been simplified to use Django-only architecture.
 
 #### 4. Configure Environment Variables
 
@@ -78,7 +80,6 @@ railway variables set ALLOWED_HOSTS=.railway.app
 
 **Automatically Provided by Railway:**
 - `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string
 
 **Optional Variables:**
 - `CORS_ALLOWED_ORIGINS` - Allowed origins for CORS
@@ -130,6 +131,48 @@ buildCommand = "pip install -r requirements.txt"
 [deploy]
 startCommand = "python manage.py migrate --noinput && gunicorn config.wsgi:application"
 healthcheckPath = "/api/health/"
+```
+
+## Architecture Simplification
+
+**This backend has been simplified!** Thanks to Ash's migration:
+
+✅ **No longer needed:**
+- ❌ Redis service
+- ❌ Celery workers
+- ❌ Celery Beat scheduler
+- ❌ Background queue runners
+- ❌ Multi-service orchestration
+
+✅ **Current stack:**
+- ✅ Django (Python 3.11)
+- ✅ PostgreSQL database
+- ✅ Gunicorn WSGI server
+
+**Result:** Simpler deployment, lower costs, easier maintenance!
+
+## Post-Deployment Cleanup
+
+After Railway deployment is confirmed working, the following cleanup is recommended:
+
+### Remove from `requirements.txt`:
+```
+celery==5.4.0
+redis==5.1.1
+django-redis==5.4.0
+```
+
+### Remove from Django settings (if present):
+- Redis cache configuration
+- Celery configuration
+- CELERY_BROKER_URL
+- CELERY_RESULT_BACKEND
+
+### Verify removal:
+```bash
+# After removing Redis/Celery dependencies
+railway up
+railway logs  # Confirm app starts without errors
 ```
 
 ## Database Migrations
@@ -213,11 +256,20 @@ To use a custom domain:
 
 Railway provides automatic scaling based on traffic. Configure in the Railway dashboard under service settings.
 
-## Costs
+**Note:** With the simplified Django-only architecture, scaling is even easier - just one service to scale!
+
+## Services & Costs
+
+**Current deployment:**
+- Django application (1 service)
+- PostgreSQL database (1 service)
+
+**Total:** 2 services (vs 4+ with Redis/Celery architecture)
 
 - Free tier available with limitations
 - Pay-as-you-go pricing for production
-- Database and Redis included in platform costs
+- Database included in platform costs
+- **No Redis costs!**
 
 ## Support
 
@@ -229,4 +281,5 @@ Railway provides automatic scaling based on traffic. Configure in the Railway da
 
 **Last Updated:** 2026-01-30  
 **Python Version:** 3.11  
-**Platform:** Railway
+**Platform:** Railway  
+**Architecture:** Django + PostgreSQL (simplified!)

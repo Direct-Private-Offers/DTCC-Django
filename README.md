@@ -383,11 +383,12 @@ For complete deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
    railway link
    ```
 
-3. **Add PostgreSQL and Redis:**
+3. **Add PostgreSQL:**
    ```bash
    railway add --database postgresql
-   railway add --database redis
    ```
+   
+   **Note:** Redis is NO LONGER needed! Backend simplified to Django-only.
 
 4. **Configure environment variables:**
    ```bash
@@ -426,7 +427,6 @@ For complete deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 **Auto-injected by Railway:**
 - `DATABASE_URL` - PostgreSQL connection
-- `REDIS_URL` - Redis connection
 
 **Optional:**
 - `EUROCLEAR_API_BASE` / `EUROCLEAR_API_KEY`
