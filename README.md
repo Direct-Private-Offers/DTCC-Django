@@ -2,7 +2,7 @@
 
 > Production-ready Django REST Framework backend for DTCC-compliant Security Token Operations (STO) with Euroclear and Clearstream integrations.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.16-red.svg)](https://www.django-rest-framework.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue.svg)](https://www.postgresql.org/)
@@ -293,7 +293,7 @@ group.user_set.add(user)
 ## Quick Start
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.11 or higher
 - PostgreSQL 12 or higher
 - Git (optional)
 
@@ -399,9 +399,8 @@ EUROCLEAR_API_KEY=<your-key>
 CLEARSTREAM_PMI_BASE=https://api.clearstream.com
 CLEARSTREAM_PMI_KEY=<your-key>
 WEBHOOK_SECRET=<hmac-secret>
-SENDGRID_API_KEY=<your-sendgrid-api-key>
-SENDGRID_FROM_EMAIL=noreply@yourdomain.com
-SENDGRID_FROM_NAME=DTCC STO Backend
+OMNISEND_API_KEY=<your-omnisend-api-key>
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
 ```
 
 #### 4. Database Migrations
