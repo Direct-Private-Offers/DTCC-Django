@@ -16,7 +16,20 @@ DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
 # Fail-safe: if ENVIRONMENT is production, force DEBUG=False
 if os.getenv('ENVIRONMENT') == 'production':
     DEBUG = False
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Parse ALLOWED_HOSTS from environment variable
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+
+# Automatically add Vercel deployment domains when running on Vercel
+if os.getenv('VERCEL'):
+    # Add the specific deployment URL (e.g., abc123-project.vercel.app)
+    vercel_url = os.getenv('VERCEL_URL')
+    if vercel_url and vercel_url not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(vercel_url)
+    
+    # Add wildcard for all Vercel preview deployments
+    if '.vercel.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.vercel.app')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -42,15 +55,12 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.storage',
-<<<<<<< HEAD
     'apps.payments',  # Bill Bitts / NEO Bank payment integration
     'apps.issuers',  # Issuer onboarding (BD integration)
-=======
     'apps.xetra',
     'apps.receipts',
     'apps.neo_bank',
     'apps.fx_market',
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
 ]
 
 MIDDLEWARE = [
@@ -346,7 +356,6 @@ else:
 
 DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
 
-<<<<<<< HEAD
 # Bill Bitts / NEO Bank Payment Integration
 BILLBITTS_API_URL = os.getenv('BILLBITTS_API_URL', 'https://api.billbitcoins.com')
 BILLBITTS_API_KEY = os.getenv('BILLBITTS_API_KEY', '')
@@ -355,7 +364,6 @@ BILLBITTS_PRIVATE_KEY_PATH = os.getenv('BILLBITTS_PRIVATE_KEY_PATH', os.path.joi
 # Omnisend Marketing Automation
 OMNISEND_API_KEY = os.getenv('OMNISEND_API_KEY', '')
 
-=======
 # CSD Credential Validation (warnings in production, not errors to allow development)
 if os.getenv('ENVIRONMENT') == 'production':
     import logging
@@ -366,4 +374,3 @@ if os.getenv('ENVIRONMENT') == 'production':
         logger.warning("Clearstream production credentials not configured")
     if not os.getenv('XETRA_API_KEY') or os.getenv('XETRA_API_BASE', '').endswith('.example'):
         logger.warning("XETRA production credentials not configured")
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
