@@ -310,7 +310,7 @@ taskkill /PID <PID> /F
 1. ✅ **Django running locally with mock APIs**
 2. 🔄 **Build first API endpoint** (contracts list)
 3. 🔄 **Add unit tests** for mock clients
-4. 🔄 **Deploy to Vercel** (serverless)
+4. 🔄 **Deploy to Railway** (production deployment)
 5. ⏳ **Apply for real API credentials** (Euroclear, Clearstream, etc.)
 
 ---

@@ -2,7 +2,7 @@
 
 > Production-ready Django REST Framework backend for DTCC-compliant Security Token Operations (STO) with Euroclear and Clearstream integrations.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.16-red.svg)](https://www.django-rest-framework.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue.svg)](https://www.postgresql.org/)
@@ -12,7 +12,7 @@
 
 Backend REST API for DTCC-compliant security token operations. Supports token issuance, derivatives reporting, Euroclear/Clearstream settlement sync, corporate actions, secure webhooks, and DEX/P2P flows.
 
-Deployment: Vercel serverless functions (no Docker required).
+Deployment: Railway with Python 3.11.
 
 ## Table of Contents
 
@@ -364,66 +364,76 @@ python manage.py runserver
 
 ## Deployment
 
-### Vercel Serverless Deployment
+### Railway Deployment
 
-This project is optimized for Vercel serverless functions (no Docker required).
+This project is deployed on **Railway** using Python 3.11.
 
-#### 1. Prerequisites
-- Vercel account
-- External PostgreSQL database (Neon, Supabase, or AWS RDS)
-- External Redis instance (Upstash or AWS ElastiCache)
+For complete deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-#### 2. Vercel Configuration Files
-The following files are already configured:
-- `api/index.py` - Django WSGI entry point for serverless function
-- `backend/vercel.json` - Routes configuration
-- `backend/requirements.txt` - Python dependencies
+#### Quick Start
 
-#### 3. Environment Variables
-Configure in Vercel Project → Settings → Environment Variables:
-
-**Required:**
+1. **Install Railway CLI:**
    ```bash
-DJANGO_SETTINGS_MODULE=config.settings
-DEBUG=false
-ALLOWED_HOSTS=.vercel.app,<your-domain>
-DATABASE_URL=postgres://user:pass@host:5432/dbname
-REDIS_URL=redis://host:port
-DJANGO_SECRET_KEY=<strong-random-secret>
-```
-
-**Optional (as needed):**
-   ```bash
-EUROCLEAR_API_BASE=https://api.euroclear.com
-EUROCLEAR_API_KEY=<your-key>
-CLEARSTREAM_PMI_BASE=https://api.clearstream.com
-CLEARSTREAM_PMI_KEY=<your-key>
-WEBHOOK_SECRET=<hmac-secret>
-SENDGRID_API_KEY=<your-sendgrid-api-key>
-SENDGRID_FROM_EMAIL=noreply@yourdomain.com
-SENDGRID_FROM_NAME=DTCC STO Backend
-```
-
-#### 4. Database Migrations
-Run migrations against your production database:
-
-```cmd
-set DATABASE_URL=postgres://...
-cd backend
-python manage.py migrate
-```
-
-#### 5. Deploy
-```cmd
-   vercel
-   vercel --prod
+   npm install -g @railway/cli
+   railway login
    ```
 
-#### 6. Verify Deployment
-- ✅ API Documentation: `https://<project>.vercel.app/api/docs/`
-- ✅ ReDoc: `https://<project>.vercel.app/api/redoc/`
-- ✅ Test JWT authentication flow
-- ✅ Test protected endpoints
+2. **Link to Railway project:**
+   ```bash
+   railway link
+   ```
+
+3. **Add PostgreSQL and Redis:**
+   ```bash
+   railway add --database postgresql
+   railway add --database redis
+   ```
+
+4. **Configure environment variables:**
+   ```bash
+   railway variables set DJANGO_SETTINGS_MODULE=config.settings
+   railway variables set SECRET_KEY=your-secret-key
+   railway variables set DEBUG=False
+   railway variables set ALLOWED_HOSTS=.railway.app
+   ```
+
+5. **Deploy:**
+   ```bash
+   railway up
+   # Or push to GitHub (auto-deploys)
+   git push origin main
+   ```
+
+6. **Monitor:**
+   ```bash
+   railway logs
+   railway open
+   ```
+
+#### Configuration Files
+
+- **`railway.toml`** - Railway deployment configuration
+- **`runtime.txt`** - Python version specification (python-3.11)
+- **`requirements.txt`** - Python dependencies
+
+#### Environment Variables
+
+**Required:**
+- `DJANGO_SETTINGS_MODULE=config.settings`
+- `SECRET_KEY` - Strong random secret key
+- `DEBUG=False` (for production)
+- `ALLOWED_HOSTS=.railway.app`
+
+**Auto-injected by Railway:**
+- `DATABASE_URL` - PostgreSQL connection
+- `REDIS_URL` - Redis connection
+
+**Optional:**
+- `EUROCLEAR_API_BASE` / `EUROCLEAR_API_KEY`
+- `CLEARSTREAM_PMI_BASE` / `CLEARSTREAM_PMI_KEY`
+- `OMNISEND_API_KEY`
+- `BILLBITTS_API_KEY`
+- `WEBHOOK_SECRET`
 
 ## API Usage Examples
 

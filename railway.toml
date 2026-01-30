@@ -16,4 +16,4 @@ restartPolicyMaxRetries = 10
 # - SECRET_KEY=<your-secret-key>
 # - DEBUG=False
 # - ALLOWED_HOSTS=.railway.app
-# - CORS_ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
+# - CORS_ALLOWED_ORIGINS=https://your-frontend-app.com
