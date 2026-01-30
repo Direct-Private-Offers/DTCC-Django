@@ -16,7 +16,14 @@ try:
     from django_ratelimit.decorators import ratelimit
 except ImportError:
     # Fallback: try alternative package name
-    from ratelimit.decorators import ratelimit
+    try:
+        from ratelimit.decorators import ratelimit
+    except ImportError:
+        # Fallback no-op decorator for local/dev when ratelimit is unavailable
+        def ratelimit(*args, **kwargs):
+            def _decorator(func):
+                return func
+            return _decorator
 from apps.neo_bank.models import KycSyncStatus
 from apps.neo_bank.services import NeoBankSyncService
 from drf_spectacular.utils import extend_schema, OpenApiResponse
