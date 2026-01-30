@@ -23,9 +23,13 @@ ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 # Automatically add Vercel deployment domains when running on Vercel
 if os.getenv('VERCEL'):
     # Add the specific deployment URL (e.g., abc123-project.vercel.app)
+    # VERCEL_URL is set by Vercel and contains just the hostname (no protocol)
     vercel_url = os.getenv('VERCEL_URL')
-    if vercel_url and vercel_url not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(vercel_url)
+    if vercel_url:
+        # Defensive: strip protocol if present (though Vercel doesn't include it)
+        vercel_url = vercel_url.replace('https://', '').replace('http://', '')
+        if vercel_url not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(vercel_url)
     
     # Add wildcard for all Vercel preview deployments
     if '.vercel.app' not in ALLOWED_HOSTS:
