@@ -42,15 +42,12 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.storage',
-<<<<<<< HEAD
     'apps.payments',  # Bill Bitts / NEO Bank payment integration
     'apps.issuers',  # Issuer onboarding (BD integration)
-=======
     'apps.xetra',
     'apps.receipts',
     'apps.neo_bank',
     'apps.fx_market',
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
 ]
 
 MIDDLEWARE = [
@@ -346,16 +343,13 @@ else:
 
 DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
 
-<<<<<<< HEAD
-# Bill Bitts / NEO Bank Payment Integration
+ # Bill Bitts / NEO Bank Payment Integration
 BILLBITTS_API_URL = os.getenv('BILLBITTS_API_URL', 'https://api.billbitcoins.com')
 BILLBITTS_API_KEY = os.getenv('BILLBITTS_API_KEY', '')
 BILLBITTS_PRIVATE_KEY_PATH = os.getenv('BILLBITTS_PRIVATE_KEY_PATH', os.path.join(BASE_DIR, 'keys', 'billbitts_private.pem'))
 
 # Omnisend Marketing Automation
 OMNISEND_API_KEY = os.getenv('OMNISEND_API_KEY', '')
-
-=======
 # CSD Credential Validation (warnings in production, not errors to allow development)
 if os.getenv('ENVIRONMENT') == 'production':
     import logging
@@ -366,4 +360,4 @@ if os.getenv('ENVIRONMENT') == 'production':
         logger.warning("Clearstream production credentials not configured")
     if not os.getenv('XETRA_API_KEY') or os.getenv('XETRA_API_BASE', '').endswith('.example'):
         logger.warning("XETRA production credentials not configured")
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
+

@@ -49,68 +49,80 @@ class EuroclearClient:
 
     def get_security_details(self, isin: str) -> Optional[Dict[str, Any]]:
         """
-        Get security details from Euroclear API.
-        Returns None if security not found or on error.
-        
-        Args:
-            isin: International Securities Identification Number
-            
+        Fetch security details from Euroclear (or mock).
         Returns:
-            Dict with security details or None on error
+            - dict with security data on success
+            - None if security not found (404)
+            - dict with {"error": "..."} for API/connection failures
         """
+        import time
+
         if not isin:
             logger.warning("get_security_details called with empty ISIN")
-            return None
-        
-        try:
-<<<<<<< HEAD
-            if self.mock_mode:
-                # MOCK MODE - return fake data
-                logger.debug(f"[MOCK] Fetching security details for ISIN: {isin}")
-                return {
-                    'isin': isin,
-                    'name': f'Mock Security {isin[:4]}',
-                    'currency': 'USD',
-                    'issuer': 'Mock Issuer Corp',
-                    'status': 'active',
-                    'mock': True,
-                }
-            else:
-                # PRODUCTION MODE - real API call
-                logger.debug(f"[PROD] Fetching security details for ISIN: {isin}")
-                response = httpx.get(
-                    f"{self.base}/securities/{isin}",
-                    headers=self._headers(),
-                    timeout=self.timeout
-                )
+            return {"error": "empty_isin"}
+
+        # -------------------------
+        # MOCK MODE
+        # -------------------------
+        if self.mock_mode:
+            logger.debug(f"[MOCK] Fetching security details for ISIN: {isin}")
+            return {
+                "isin": isin,
+                "name": f"Mock Security {isin[:4]}",
+                "currency": "USD",
+                "issuer": "Mock Issuer Corp",
+                "status": "active",
+                "mock": True,
+            }
+
+        url = f"{self.base}/securities/{isin}"
+        headers = self._headers()
+
+        for attempt in range(2):  # simple retry
+            try:
+                t0 = time.time()
+                logger.debug(f"[PROD] Fetching security details for ISIN {isin} (attempt {attempt+1})")
+
+                response = httpx.get(url, headers=headers, timeout=self.timeout)
+                latency = (time.time() - t0) * 1000
+
                 response.raise_for_status()
-                return response.json()
-=======
-            # Production implementation: call Euroclear API
-            response = httpx.get(
-                f"{self.base}/securities/{isin}",
-                headers=self._headers(),
-                timeout=self.timeout
-            )
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                logger.warning(f"Security not found in Euroclear: {isin}")
-                return None
-            logger.error(f"HTTP error fetching security details for ISIN {isin}: {e.response.status_code}")
-            return None
-        except httpx.RequestError as e:
-            logger.error(f"Request error fetching security details for ISIN {isin}: {str(e)}")
-            # Fallback to mock in development if API is not available
-            if self.base.endswith('.example'):
-                logger.debug(f"Using mock data for ISIN: {isin}")
-                return {'isin': isin, 'name': 'Mock Security', 'currency': 'USD'}
-            return None
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
-        except Exception as e:
-            logger.error(f"Error fetching security details for ISIN {isin}: {str(e)}")
-            return None
+                data = response.json()
+
+                # Minimal schema validation
+                if "isin" not in data or "name" not in data:
+                    logger.error(f"Invalid schema from Euroclear for ISIN {isin}: {data}")
+                    return {"error": "invalid_schema", "raw": data}
+
+                logger.info(f"[PROD] Euroclear lookup OK for {isin} ({latency:.1f} ms)")
+                return data
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    logger.warning(f"Security not found in Euroclear: {isin}")
+                    return None
+                logger.error(
+                    f"Euroclear HTTP error for ISIN {isin}: {e.response.status_code} "
+                    f"(attempt {attempt+1})"
+                )
+                if attempt == 1:
+                    return {"error": "http_error", "status": e.response.status_code}
+
+            except httpx.RequestError as e:
+                logger.error(f"Euroclear request error for ISIN {isin}: {str(e)} (attempt {attempt+1})")
+                if attempt == 1:
+                    return {"error": "request_error", "details": str(e)}
+
+            except Exception as e:
+                logger.error(f"Error fetching security details for ISIN {isin}: {str(e)}")
+                if attempt == 1:
+                    return {"error": "unknown_error", "details": str(e)}
+
+        # Fallback to mock in development if API is not available
+        if self.base.endswith('.example'):
+            logger.debug(f"Using mock data for ISIN: {isin}")
+            return {'isin': isin, 'name': 'Mock Security', 'currency': 'USD', 'mock': True}
+        return {"error": "unreachable"}
 
     def validate_investor(self, isin: str, address: str) -> bool:
         """
@@ -129,22 +141,15 @@ class EuroclearClient:
             return False
         
         try:
-<<<<<<< HEAD
-            if self.mock_mode:
-                # MOCK MODE - always pass validation
-                logger.debug(f"[MOCK] Validating investor {address} for ISIN: {isin}")
-                return True
-            else:
-                # PRODUCTION MODE - call Euroclear API
-                response = httpx.get(
-                    f"{self.base}/validate/investor",
-                    params={'isin': isin, 'investorId': address},
-                    headers=self._headers(),
-                    timeout=self.timeout
-                )
-                response.raise_for_status()
-                return response.json().get('eligible', False)
-=======
+            # PRODUCTION MODE - call Euroclear API
+            response = httpx.get(
+                f"{self.base}/validate/investor",
+                params={'isin': isin, 'investorId': address},
+                headers=self._headers(),
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json().get('eligible', False)
             # Production implementation: call Euroclear API
             response = httpx.post(
                 f"{self.base}/investors/validate",
@@ -163,8 +168,6 @@ class EuroclearClient:
             if self.base.endswith('.example'):
                 logger.debug(f"Using mock validation for ISIN: {isin}, address: {address}")
                 return bool(isin and address)
-            return False
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
         except Exception as e:
             logger.error(f"Error validating investor {address} for ISIN {isin}: {str(e)}")
             return False
@@ -183,25 +186,12 @@ class EuroclearClient:
             Exception on API error
         """
         try:
-<<<<<<< HEAD
-            isin = payload.get('isin') or 'UNKNOWN'
-            
-            if self.mock_mode:
-                # MOCK MODE - return fake transaction ID
-                logger.debug(f"[MOCK] Initiating tokenization for ISIN: {isin}")
-                return f'MOCK-TX-{isin}-{hash(str(payload)) % 1000000:06d}'
-            else:
-                # PRODUCTION MODE - real API call
-                logger.debug(f"[PROD] Initiating tokenization for ISIN: {isin}")
-                response = httpx.post(
-                    f"{self.base}/tokenization/initiate",
-                    json=payload,
-                    headers=self._headers(),
-                    timeout=self.timeout
-                )
-                response.raise_for_status()
-                return response.json().get('transactionId')
-=======
+            response = httpx.post(
+                f"{self.base}/tokenization/initiate",
+                json=payload,
+                headers=self._headers(),
+                timeout=self.timeout
+            )
             # Production implementation: call Euroclear API
             response = httpx.post(
                 f"{self.base}/tokenization/initiate",
@@ -222,8 +212,6 @@ class EuroclearClient:
                 isin = payload.get('isin') or 'UNKNOWN'
                 logger.debug(f"Using mock tokenization for ISIN: {isin}")
                 return 'TX-' + isin
-            raise Exception(f"Euroclear API request failed: {str(e)}")
->>>>>>> 3c7d6abcbdda711930c54eab2811849c99a99f5c
         except Exception as e:
             logger.error(f"Error initiating tokenization for ISIN {isin}: {str(e)}")
             raise
