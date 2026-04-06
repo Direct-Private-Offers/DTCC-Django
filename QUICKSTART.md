@@ -71,7 +71,7 @@ Comment out Redis-dependent features in settings (cache will use in-memory fallb
 
 ```powershell
 # Navigate to DTCC Django directory
-cd external\dtcc-django
+cd C:\path\to\DTCC-Django
 
 # Create virtual environment
 python -m venv venv
@@ -327,4 +327,4 @@ taskkill /PID <PID> /F
 
 **Total time:** ~30 minutes
 
-**Next:** Build your first contract endpoint or start applying for real credentials (see DTCC_CREDENTIALS_PLAN.md)
+**Next:** Build your first contract endpoint or start applying for real credentials
