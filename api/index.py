@@ -2,11 +2,11 @@ import os
 import sys
 import json
 
-# Ensure the Django app (backend/) is importable when running on Vercel
+# Ensure the Django app root is importable when running on Vercel
 CURRENT_DIR = os.path.dirname(__file__)
-BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
-if BACKEND_DIR not in sys.path:
-    sys.path.append(BACKEND_DIR)
+PROJECT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+if PROJECT_DIR not in sys.path:
+    sys.path.append(PROJECT_DIR)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
