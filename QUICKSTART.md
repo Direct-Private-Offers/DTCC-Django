@@ -307,23 +307,23 @@ taskkill /PID <PID> /F
 
 ## Next Steps
 
-1. ✅ **Django running locally with mock APIs**
-2. 🔄 **Build first API endpoint** (contracts list)
-3. 🔄 **Add unit tests** for mock clients
-4. 🔄 **Deploy to Vercel** (serverless)
-5. ⏳ **Apply for real API credentials** (Euroclear, Clearstream, etc.)
+1. Django running locally with mock APIs
+2. Build first API endpoint (contracts list)
+3. Add unit tests for mock clients
+4. Deploy to Vercel (serverless)
+5. Apply for real API credentials (Euroclear, Clearstream, etc.)
 
 ---
 
 ## Summary
 
 **You now have:**
-- ✅ Django REST API running locally
-- ✅ PostgreSQL database connected
-- ✅ Mock Euroclear/Clearstream clients working
-- ✅ Healthcheck endpoint (`/api/health`)
-- ✅ JWT authentication configured
-- ✅ Ready to build endpoints with mock data
+- Django REST API running locally
+- PostgreSQL database connected
+- Mock Euroclear/Clearstream clients working
+- Healthcheck endpoint (`/api/health`)
+- JWT authentication configured
+- Ready to build endpoints with mock data
 
 **Total time:** ~30 minutes
 
