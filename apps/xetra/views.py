@@ -5,8 +5,9 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.utils import timezone
 from decimal import Decimal
 
+from rest_framework.permissions import IsAuthenticated
 from apps.core.responses import ok, bad_request, not_found
-from apps.core.permissions import IsAuthenticated, HasGroupPermission
+from apps.core.permissions import IsInGroup
 from .models import XetraTrade, XetraOrder, XetraSettlement, XetraPosition, XetraMarketData
 from .serializers import (
     XetraTradeSerializer, XetraOrderSerializer, XetraSettlementSerializer,
@@ -160,8 +161,7 @@ class XetraTradeView(APIView):
 
 class XetraSettlementView(APIView):
     """XETRA settlement endpoints"""
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = ['ops', 'issuer']
+    permission_classes = [IsAuthenticated, IsInGroup.with_names(["ops", "issuer"])]
     
     @extend_schema(
         summary="Create XETRA settlement instruction",

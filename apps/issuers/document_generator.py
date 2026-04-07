@@ -26,7 +26,10 @@ except (ImportError, OSError):
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
     from reportlab.lib.enums import TA_LEFT, TA_CENTER
-    from xhtml2pdf import pisa
+    try:
+        from xhtml2pdf import pisa
+    except ImportError:
+        pisa = None
     PDF_ENGINE = 'reportlab'
 
 from .models import (
@@ -55,7 +58,10 @@ class DocumentGenerator:
             self.font_config = FontConfiguration()
             print("✅ Using WeasyPrint for PDF generation")
         else:
-            print("✅ Using xhtml2pdf (pisa) for PDF generation")
+            if pisa is None:
+                print("⚠️ xhtml2pdf not available; reportlab engine will error if PDF generation is requested")
+            else:
+                print("✅ Using xhtml2pdf (pisa) for PDF generation")
     
     def get_template_context(self, issuer: Issuer, template: SECDocumentTemplate) -> Dict[str, Any]:
         """
@@ -192,6 +198,8 @@ class DocumentGenerator:
             pdf_bytes = html.write_pdf(font_config=self.font_config)
         else:
             # Use xhtml2pdf (pisa)
+            if pisa is None:
+                raise Exception("PDF generation requires xhtml2pdf, which is not installed.")
             result_file = io.BytesIO()
             pisa_status = pisa.CreatePDF(
                 io.BytesIO(html_content.encode('utf-8')),

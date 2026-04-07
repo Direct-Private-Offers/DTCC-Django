@@ -5,8 +5,8 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.http import FileResponse
 from django.contrib.auth.models import User
 
+from rest_framework.permissions import IsAuthenticated
 from apps.core.responses import ok, bad_request, not_found
-from apps.core.permissions import IsAuthenticated
 from .models import Receipt
 from .serializers import ReceiptSerializer, ReceiptCreateSerializer
 from .services import create_receipt

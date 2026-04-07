@@ -4,7 +4,7 @@ This document summarizes the changes made to migrate from SQLite to PostgreSQL.
 
 ## Changes Made
 
-### 1. Database Configuration (`backend/config/settings.py`)
+### 1. Database Configuration (`config/settings.py`)
 - **Before**: Defaulted to SQLite if `DATABASE_URL` was not set
 - **After**: `DATABASE_URL` is now **required** - application will not start without it
 - Added PostgreSQL-specific optimizations:
@@ -15,8 +15,7 @@ This document summarizes the changes made to migrate from SQLite to PostgreSQL.
 
 ### 2. Documentation Updates
 - **README.md**: Updated to require PostgreSQL setup
-- **docs/env-setup.md**: Updated to show PostgreSQL as required
-- **docs/postgresql-setup.md**: New comprehensive PostgreSQL setup guide
+- **QUICKSTART.md**: Updated to show PostgreSQL as required
 
 ### 3. No Code Changes Required
 - All models use Django's ORM which is database-agnostic
@@ -26,7 +25,7 @@ This document summarizes the changes made to migrate from SQLite to PostgreSQL.
 ## Migration Steps
 
 ### For New Installations
-1. Install PostgreSQL (see `docs/postgresql-setup.md`)
+1. Install PostgreSQL (see `QUICKSTART.md`)
 2. Create database: `createdb dtcc_sto_db`
 3. Set `DATABASE_URL` in `.env` file
 4. Run migrations: `python manage.py migrate`
@@ -93,7 +92,7 @@ python manage.py check --database default
 
 ## Troubleshooting
 
-See `docs/postgresql-setup.md` for detailed troubleshooting guide.
+See `QUICKSTART.md` for detailed troubleshooting guide.
 
 ## Notes
 
@@ -101,4 +100,3 @@ See `docs/postgresql-setup.md` for detailed troubleshooting guide.
 - All existing migrations are compatible with PostgreSQL
 - No model changes were required
 - JSONField works identically in PostgreSQL (uses JSONB)
-

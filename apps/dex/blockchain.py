@@ -8,7 +8,6 @@ from typing import Optional, Dict, Any
 from decimal import Decimal
 from web3 import Web3
 from apps.core.blockchain import get_web3_provider, wait_for_confirmation
-from web3.middleware import geth_poa_middleware
 
 logger = logging.getLogger(__name__)
 
@@ -264,4 +263,3 @@ def estimate_gas(w3: Web3, tx: Dict[str, Any]) -> int:
     except Exception as e:
         logger.error(f"Error estimating gas: {str(e)}")
         return 21000  # Default gas limit
-

@@ -3,6 +3,15 @@ from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+IS_VERCEL = bool(os.getenv('VERCEL') or os.getenv('VERCEL_ENV'))
+
+# Logging directory (Vercel filesystem is read-only except /tmp)
+LOG_DIR = os.getenv('LOG_DIR', '/tmp/logs' if IS_VERCEL else os.path.join(BASE_DIR, 'logs'))
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+except OSError:
+    # Ignore if filesystem is read-only (Vercel build/runtime)
+    pass
 
 # SECRET_KEY must be set in production - fail if not provided
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
@@ -191,6 +200,20 @@ else:
         'http://127.0.0.1:8000',
     ]
 
+# PayBito CTA Redirect Gateway
+PAYBITO_BASE_URL = os.getenv('PAYBITO_BASE_URL', 'https://exchange.dpo-global.com').rstrip('/')
+CTA_REDIRECT_ROUTES = {
+    'signup': '/signup',
+    'spot': '/spot',
+    'convert': '/convert',
+    'payments': '/payments/get-started',
+    'wallet': '/my-wallet',
+    'deposit': '/deposit',
+    'withdraw': '/withdraw',
+    'history': '/history',
+    'reports': '/report',
+}
+
 # Blockchain Configuration
 QUICKNODE_URL = os.getenv('QUICKNODE_URL', '')
 BLOCKCHAIN_RPC_URL = os.getenv('BLOCKCHAIN_RPC_URL', QUICKNODE_URL)
@@ -242,7 +265,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'dtcc.log'),
+            'filename': os.path.join(LOG_DIR, 'dtcc.log'),
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
             'backupCount': 5,
             'formatter': 'json',
@@ -250,7 +273,7 @@ LOGGING = {
         'error_file': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+            'filename': os.path.join(LOG_DIR, 'errors.log'),
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
             'backupCount': 10,
             'formatter': 'json',
@@ -314,9 +337,16 @@ if not os.getenv('REDIS_URL'):
         'LOCATION': 'dtcc-cache',
     }
 
-# File Storage Configuration
-FILE_STORAGE_ROOT = os.path.join(BASE_DIR, 'storage', 'files')
-os.makedirs(FILE_STORAGE_ROOT, exist_ok=True)
+# File Storage Configuration (use /tmp on Vercel)
+FILE_STORAGE_ROOT = os.getenv(
+    'FILE_STORAGE_ROOT',
+    '/tmp/storage/files' if IS_VERCEL else os.path.join(BASE_DIR, 'storage', 'files')
+)
+try:
+    os.makedirs(FILE_STORAGE_ROOT, exist_ok=True)
+except OSError:
+    # Ignore if filesystem is read-only (Vercel build/runtime)
+    pass
 
 # IPFS Configuration (optional)
 IPFS_ENABLED = os.getenv('IPFS_ENABLED', 'false').lower() == 'true'
@@ -360,4 +390,3 @@ if os.getenv('ENVIRONMENT') == 'production':
         logger.warning("Clearstream production credentials not configured")
     if not os.getenv('XETRA_API_KEY') or os.getenv('XETRA_API_BASE', '').endswith('.example'):
         logger.warning("XETRA production credentials not configured")
-

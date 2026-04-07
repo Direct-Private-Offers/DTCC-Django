@@ -3,8 +3,8 @@ System health and monitoring endpoints.
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from django.db import connection
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db import connection, models
 from django.core.cache import cache
 from django.conf import settings
 from apps.core.responses import ok
@@ -225,3 +225,77 @@ class CSDHealthView(APIView):
             checks['xetra'] = 'not_configured'
         
         return Response(checks, status=200)
+
+
+class RedirectConfigView(APIView):
+    """Expose redirect config for quick validation."""
+
+    def get_permissions(self):
+        if getattr(settings, 'REDIRECT_STATS_PUBLIC', False):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    @extend_schema(
+        tags=["System"],
+        summary="Redirect configuration",
+        description="Returns current CTA redirect base URL and route map.",
+        responses={200: OpenApiResponse(description="Redirect configuration")},
+    )
+    def get(self, request):
+        return Response({
+            'base_url': getattr(settings, 'PAYBITO_BASE_URL', ''),
+            'routes': getattr(settings, 'CTA_REDIRECT_ROUTES', {}),
+        })
+
+
+class RedirectStatsView(APIView):
+    """Basic redirect stats for GTM validation."""
+
+    def get_permissions(self):
+        if getattr(settings, 'REDIRECT_STATS_PUBLIC', False):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    @extend_schema(
+        tags=["System"],
+        summary="Redirect stats",
+        description="Returns redirect counts by route and recent activity.",
+        responses={200: OpenApiResponse(description="Redirect stats")},
+    )
+    def get(self, request):
+        from apps.core.models import RedirectEvent
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.db.utils import OperationalError, ProgrammingError
+
+        now = timezone.now()
+        last_24h = now - timedelta(hours=24)
+        last_1h = now - timedelta(hours=1)
+
+        try:
+            total = RedirectEvent.objects.count()
+            total_24h = RedirectEvent.objects.filter(created_at__gte=last_24h).count()
+            total_1h = RedirectEvent.objects.filter(created_at__gte=last_1h).count()
+
+            per_route = (
+                RedirectEvent.objects
+                .values('route')
+                .order_by('route')
+                .annotate(count=models.Count('id'))
+            )
+            per_route_list = list(per_route)
+            status = "ok"
+        except (OperationalError, ProgrammingError) as exc:
+            logger.warning("Redirect stats unavailable (DB not ready): %s", exc)
+            total = total_24h = total_1h = 0
+            per_route_list = []
+            status = "db_not_ready"
+
+        return Response({
+            'timestamp': now.isoformat(),
+            'status': status,
+            'total': total,
+            'last_24h': total_24h,
+            'last_1h': total_1h,
+            'per_route': per_route_list,
+        })

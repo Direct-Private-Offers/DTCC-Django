@@ -28,3 +28,14 @@ class IsInGroup(BasePermission):
             return True
         user_groups = set(user.groups.values_list('name', flat=True))
         return any(g in user_groups for g in self.required_groups)
+
+
+class IsIssuerOrOps(IsInGroup):
+    """Permission helper for issuer or ops roles."""
+    required_groups = ["issuer", "ops"]
+
+
+# Backward-compatible alias for older imports
+class HasGroupPermission(IsInGroup):
+    """Legacy alias for IsInGroup."""
+    pass

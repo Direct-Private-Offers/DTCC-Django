@@ -2,7 +2,7 @@
 
 > Production-ready Django REST Framework backend for DTCC-compliant Security Token Operations (STO) with Euroclear and Clearstream integrations.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.16-red.svg)](https://www.django-rest-framework.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue.svg)](https://www.postgresql.org/)
@@ -50,8 +50,8 @@ Deployment: Vercel serverless functions (no Docker required).
 
 ### Developer Experience
 - OpenAPI docs (Swagger/ReDoc) with examples
-- Testing guide and pytest setup
-- Windows development guidance
+- Pytest setup
+- Windows-friendly quickstart commands
 - PostgreSQL-focused configuration
 
 ## Architecture
@@ -59,20 +59,26 @@ Deployment: Vercel serverless functions (no Docker required).
 ### Project Structure
 
 ```
-backend/
-├── config/              # Django settings, URLs, WSGI/ASGI configuration
-├── apps/
-│   ├── core/           # Core utilities (responses, idempotency, crypto, permissions, middleware)
-│   ├── euroclear/      # Euroclear API client integration
-│   ├── issuance/       # Token issuance endpoints
-│   ├── derivatives/    # Derivatives reporting endpoints
-│   ├── settlement/     # Settlement management (Euroclear)
+DTCC-Django/
+├── api/                 # Vercel serverless entrypoint
+├── apps/                # Django apps
+│   ├── core/            # Core utilities (responses, idempotency, crypto, permissions, middleware)
+│   ├── euroclear/       # Euroclear API client integration
+│   ├── issuance/        # Token issuance endpoints
+│   ├── derivatives/     # Derivatives reporting endpoints
+│   ├── settlement/      # Settlement management (Euroclear)
 │   ├── corporate_actions/  # Corporate actions processing
-│   ├── clearstream/    # Clearstream PMI integration
-│   ├── webhooks/       # Webhook handlers (Euroclear, Clearstream, Chainlink)
-│   └── dex/            # DEX/SWAP P2P trading and wallet management
-├── docs/               # Documentation (setup guides, API testing)
-└── manage.py           # Django management script
+│   ├── clearstream/     # Clearstream PMI integration
+│   ├── webhooks/        # Webhook handlers (Euroclear, Clearstream, Chainlink)
+│   └── dex/             # DEX/SWAP P2P trading and wallet management
+├── config/              # Django settings, URLs, WSGI/ASGI configuration
+├── contracts/           # Contract ABIs and addresses
+├── scripts/             # Utility scripts
+├── templates/           # HTML templates
+├── sec_documents/       # SEC-related documents
+├── manage.py            # Django management script
+├── requirements.txt     # Python dependencies
+└── vercel.json          # Vercel routes config
 ```
 
 ## Workflow
@@ -293,7 +299,7 @@ group.user_set.add(user)
 ## Quick Start
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.11 or higher
 - PostgreSQL 12 or higher
 - Git (optional)
 
@@ -302,7 +308,7 @@ group.user_set.add(user)
 #### 1. Clone and Setup Environment
 
 ```cmd
-cd backend
+cd DTCC-Django
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -314,7 +320,7 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Edit `.env` file with your configuration. See [Environment Setup Guide](docs/env-setup.md) for details.
+Edit `.env` file with your configuration. `.env.example` lists the available variables.
 
 #### 3. Setup PostgreSQL Database
 
@@ -337,12 +343,11 @@ Add to your `.env` file:
 DATABASE_URL=postgres://postgres:your_password@localhost:5432/dtcc_sto_db
 ```
 
-> 📖 **Detailed Setup**: See [PostgreSQL Setup Guide](docs/postgresql-setup.md) for comprehensive instructions
+> 📖 **Detailed Setup**: See `POSTGRESQL_MIGRATION.md` for comprehensive instructions
 
 #### 4. Run Migrations
 
 ```cmd
-cd backend
 .venv\Scripts\activate
 python manage.py migrate
 python manage.py createsuperuser
@@ -360,7 +365,7 @@ python manage.py runserver
 - ReDoc: http://localhost:8000/api/redoc/
 - API Schema: http://localhost:8000/api/schema/
 
-> 📖 **Windows-Specific Help**: See [Windows Setup Guide](docs/windows-setup.md) for detailed Windows instructions
+> 📖 **Windows-Specific Help**: See `QUICKSTART.md` for PowerShell-first setup instructions
 
 ## Deployment
 
@@ -376,8 +381,8 @@ This project is optimized for Vercel serverless functions (no Docker required).
 #### 2. Vercel Configuration Files
 The following files are already configured:
 - `api/index.py` - Django WSGI entry point for serverless function
-- `backend/vercel.json` - Routes configuration
-- `backend/requirements.txt` - Python dependencies
+- `vercel.json` - Routes configuration
+- `requirements.txt` - Python dependencies
 
 #### 3. Environment Variables
 Configure in Vercel Project → Settings → Environment Variables:
@@ -409,7 +414,6 @@ Run migrations against your production database:
 
 ```cmd
 set DATABASE_URL=postgres://...
-cd backend
 python manage.py migrate
 ```
 
@@ -452,7 +456,7 @@ curl -X GET http://localhost:8000/api/issuance/?isin=US0378331005 \
 
 ### Quick Test Examples
 
-> 📖 **Complete Testing Guide**: See [API Testing Guide](docs/api-testing-guide.md) for comprehensive examples
+> 📖 **Complete Testing Guide**: See `test_document_generation.py`, `test_field_mapping.py`, and `test_billbitts_integration.py` for example tests
 
 **1. Token Issuance (requires `issuer` group):**
 ```bash
@@ -616,10 +620,10 @@ All API responses follow a consistent envelope format:
 ## Documentation
 
 ### Available Guides
-- 📖 [Windows Setup Guide](docs/windows-setup.md) - Complete Windows development setup
-- 📖 [PostgreSQL Setup Guide](docs/postgresql-setup.md) - Database configuration
-- 📖 [Environment Setup Guide](docs/env-setup.md) - Environment variables reference
-- 📖 [API Testing Guide](docs/api-testing-guide.md) - Comprehensive API testing examples
+- 📖 `QUICKSTART.md` - Windows-first local setup
+- 📖 `POSTGRESQL_MIGRATION.md` - Database configuration and migration notes
+- 📖 `BILL_BITTS_INTEGRATION_EXPLAINER.md` - Payments integration overview
+- 📖 `SWAP_TRACKER` - DEX/SWAP project checklist
 
 ### Interactive Documentation
 - **Swagger UI**: http://localhost:8000/api/docs/
@@ -644,7 +648,7 @@ All API responses follow a consistent envelope format:
 - ✅ **PostgreSQL required** - SQLite is not supported
 - ✅ **All responses** use the standard envelope format: `{ success, data?, error?, timestamp }`
 - ✅ **Idempotency** is supported on all POST endpoints via `Idempotency-Key` header
-- ✅ **Windows development** is fully supported with comprehensive documentation
+- ✅ **Windows development** is supported with PowerShell-first instructions in `QUICKSTART.md`
 
 ## Support
 

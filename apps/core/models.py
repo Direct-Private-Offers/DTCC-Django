@@ -76,3 +76,23 @@ class WebhookEvent(models.Model):
 
     def __str__(self):
         return f"WebhookEvent({self.source}, {self.event_type}, {self.status})"
+
+
+class RedirectEvent(models.Model):
+    """Tracks CTA intent before redirecting to the exchange."""
+    route = models.CharField(max_length=64, db_index=True)
+    target_url = models.URLField(max_length=512)
+    query_params = models.JSONField(null=True, blank=True)
+    referrer = models.TextField(null=True, blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    request_id = models.CharField(max_length=64, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['route', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"RedirectEvent(route={self.route}, target={self.target_url})"
