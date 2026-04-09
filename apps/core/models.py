@@ -83,6 +83,14 @@ class RedirectEvent(models.Model):
     route = models.CharField(max_length=64, db_index=True)
     target_url = models.URLField(max_length=512)
     query_params = models.JSONField(null=True, blank=True)
+    utm_source = models.CharField(max_length=128, null=True, blank=True, db_index=True)
+    utm_medium = models.CharField(max_length=128, null=True, blank=True, db_index=True)
+    utm_campaign = models.CharField(max_length=128, null=True, blank=True, db_index=True)
+    utm_term = models.CharField(max_length=128, null=True, blank=True)
+    utm_content = models.CharField(max_length=128, null=True, blank=True)
+    gclid = models.CharField(max_length=128, null=True, blank=True, db_index=True)
+    fbclid = models.CharField(max_length=128, null=True, blank=True, db_index=True)
+    msclkid = models.CharField(max_length=128, null=True, blank=True, db_index=True)
     referrer = models.TextField(null=True, blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
@@ -92,6 +100,7 @@ class RedirectEvent(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['route', 'created_at']),
+            models.Index(fields=['utm_source', 'utm_campaign', 'created_at']),
         ]
 
     def __str__(self):

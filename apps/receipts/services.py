@@ -256,6 +256,20 @@ class ReceiptGenerator:
             raise ValueError(f"Unknown receipt type: {receipt.receipt_type}")
 
 
+def _coerce_transaction_uuid(transaction_id: str):
+    """Coerce a transaction id into a UUID (deterministic for non-UUID strings)."""
+    import uuid as uuid_lib
+
+    if isinstance(transaction_id, uuid_lib.UUID):
+        return transaction_id
+
+    try:
+        return uuid_lib.UUID(str(transaction_id))
+    except (ValueError, TypeError):
+        # Use a deterministic UUID for non-UUID transaction IDs (e.g., TXN-1234)
+        return uuid_lib.uuid5(uuid_lib.NAMESPACE_URL, str(transaction_id))
+
+
 def create_receipt(
     receipt_type: str,
     investor: 'User',
@@ -268,14 +282,15 @@ def create_receipt(
 ) -> Receipt:
     """Create and generate receipt for a transaction"""
     import uuid as uuid_lib
-    
+
     receipt_id = f"RCPT-{receipt_type[:3]}-{uuid_lib.uuid4().hex[:12].upper()}"
-    
+    transaction_uuid = _coerce_transaction_uuid(transaction_id)
+
     receipt = Receipt.objects.create(
         receipt_id=receipt_id,
         receipt_type=receipt_type,
         investor=investor,
-        transaction_id=uuid_lib.UUID(transaction_id),
+        transaction_id=transaction_uuid,
         isin=isin,
         quantity=quantity,
         amount=amount,

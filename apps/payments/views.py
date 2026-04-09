@@ -6,8 +6,12 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.db import transaction as db_transaction
+from decimal import Decimal, InvalidOperation
 from .models import PaymentProfile, Transaction
 from .omnisend_service import OmnisendClient
+from apps.webhooks.models import WebhookEvent
+from apps.receipts.services import create_receipt, _coerce_transaction_uuid
 import json
 import logging
 
@@ -57,32 +61,49 @@ def neo_bank_webhook(request):
             logger.error(f"Payment profile not found for CPRN: {cprn}")
             return JsonResponse({'error': 'User/CPRN not found'}, status=404)
         
-        # Create or update transaction record
-        transaction, created = Transaction.objects.get_or_create(
-            transaction_id=tx_id,
-            defaults={
-                'profile': profile,
-                'amount': float(amount),
-                'currency': currency,
-                'status': transaction_status,
-                'token_contract_address': token_contract_address,
-                'token_symbol': token_symbol,
-                'webhook_payload': data
-            }
-        )
-        
-        if not created:
-            # Update existing transaction
-            transaction.status = transaction_status
-            transaction.webhook_payload = data
-            if transaction_status == 'SETTLED':
-                transaction.settled_at = timezone.now()
-            transaction.save()
+        # Create or update transaction record (atomic for idempotency)
+        with db_transaction.atomic():
+            transaction, created = Transaction.objects.get_or_create(
+                transaction_id=tx_id,
+                defaults={
+                    'profile': profile,
+                    'amount': float(amount),
+                    'currency': currency,
+                    'status': transaction_status,
+                    'token_contract_address': token_contract_address,
+                    'token_symbol': token_symbol,
+                    'webhook_payload': data
+                }
+            )
+
+            if not created:
+                # Update existing transaction
+                transaction.status = transaction_status
+                transaction.webhook_payload = data
+                if transaction_status == 'SETTLED':
+                    transaction.settled_at = timezone.now()
+                transaction.save()
+
+            # Persist raw webhook event for audit/debug
+            try:
+                WebhookEvent.objects.create(
+                    source=WebhookEvent.Source.NEO_BANK,
+                    event_type=str(transaction_status),
+                    event_data=data,
+                    reference=str(tx_id),
+                    status=WebhookEvent.Status.PROCESSED
+                )
+            except Exception as webhook_error:
+                logger.error(f"Failed to persist webhook event for {tx_id}: {webhook_error}")
         
         # Process based on status
         if transaction_status in ['SUCCESS', 'SETTLED']:
             # Update user balance
-            profile.neo_balance += float(amount)
+            try:
+                amount_decimal = Decimal(str(amount))
+            except (InvalidOperation, TypeError):
+                amount_decimal = Decimal('0')
+            profile.neo_balance += float(amount_decimal)
             profile.save()
             
             logger.info(f"Updated balance for {profile.user.username}: ${profile.neo_balance}")
@@ -98,6 +119,30 @@ def neo_bank_webhook(request):
             if email_sent:
                 logger.info(f"Omnisend email triggered for {profile.user.email}")
             
+            # Generate receipt (idempotent-ish per transaction id)
+            try:
+                tx_uuid = _coerce_transaction_uuid(str(tx_id))
+                existing = profile.user.receipts.filter(
+                    receipt_type='SETTLEMENT',
+                    transaction_id=tx_uuid
+                ).first()
+                if existing is None:
+                    create_receipt(
+                        receipt_type='SETTLEMENT',
+                        investor=profile.user,
+                        transaction_id=str(tx_id),
+                        amount=amount_decimal,
+                        currency=currency,
+                        metadata={
+                            'buyer_name': profile.user.get_full_name() or profile.user.username,
+                            'seller_name': 'PayBito',
+                            'transaction_id': str(tx_id),
+                            'source': 'neo_bank_webhook'
+                        }
+                    )
+            except Exception as receipt_error:
+                logger.error(f"Failed to generate receipt for {tx_id}: {receipt_error}")
+
             return JsonResponse({
                 'status': 'verified',
                 'message': 'Account Updated',

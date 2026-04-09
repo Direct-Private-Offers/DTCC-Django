@@ -29,6 +29,13 @@ def _coerce_query_params(get_params):
     return data
 
 
+def _get_param(query_params: dict, key: str):
+    value = query_params.get(key)
+    if isinstance(value, list):
+        return value[0] if value else None
+    return value
+
+
 def redirect_cta(request, route: str):
     routes = getattr(settings, 'CTA_REDIRECT_ROUTES', {})
     if route not in routes:
@@ -55,6 +62,14 @@ def redirect_cta(request, route: str):
             route=route,
             target_url=target_url,
             query_params=query_params or None,
+            utm_source=_get_param(query_params, 'utm_source'),
+            utm_medium=_get_param(query_params, 'utm_medium'),
+            utm_campaign=_get_param(query_params, 'utm_campaign'),
+            utm_term=_get_param(query_params, 'utm_term'),
+            utm_content=_get_param(query_params, 'utm_content'),
+            gclid=_get_param(query_params, 'gclid'),
+            fbclid=_get_param(query_params, 'fbclid'),
+            msclkid=_get_param(query_params, 'msclkid'),
             referrer=referrer,
             ip=ip,
             user_agent=user_agent,

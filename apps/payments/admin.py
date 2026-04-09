@@ -31,17 +31,17 @@ class PaymentProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['transaction_id', 'profile', 'amount', 'currency', 'status', 'nft_name', 'created_at']
+    list_display = ['transaction_id', 'profile', 'amount', 'currency', 'status', 'token_symbol', 'created_at']
     list_filter = ['status', 'currency', 'created_at']
-    search_fields = ['transaction_id', 'profile__user__username', 'nft_id', 'nft_name']
+    search_fields = ['transaction_id', 'profile__user__username', 'token_symbol', 'token_contract_address']
     readonly_fields = ['created_at', 'settled_at', 'webhook_payload']
     
     fieldsets = (
         ('Transaction Info', {
             'fields': ('transaction_id', 'profile', 'amount', 'currency', 'status')
         }),
-        ('NFT/Asset Details', {
-            'fields': ('nft_id', 'nft_name')
+        ('Token Details', {
+            'fields': ('token_symbol', 'token_contract_address')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'settled_at')
